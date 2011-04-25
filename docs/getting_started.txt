@@ -1,0 +1,31 @@
+Getting Started with Reposado
+
+What you need:
+
+- The Reposado tools
+- Python 2.5-2.7 (Reposado has been tested with Python 2.6, but should work with at least 2.5-2.7.)
+- curl binary
+- A web server
+- Storage space for the catalogs and update packages. If you are replicating the update packages, you'll need approximately 40GB of space as of April 2011. The need for space grows as additional updates are released by Apple. If you are only replicating catalogs, you'll probably need less than 100MB of space, though the exact amount of space needed depends on the number of branch catalogs you create.
+
+1) Download the Reposado tools.
+
+2) Create a directory in which to store replicated catalogs and updates, and another to store Reposado metadata. These may share a parent directory, like so:
+	/Volumes/data/reposado/html
+	/Volumes/data/reposado/metadata
+Make sure you have enough space for the replicated catalogs and updates.
+
+3) Configure your web server to serve the contents of the updates root directory you created ("/Volumes/data/reposado/html" in the example above). If you are planning to replicate and serve the actual update packages as well as the catalogs, make note of the URL needed to access the updates root directory via HTTP. This will be the LocalCatalogURLBase when configuring Reposado in the next step.
+
+4) Configure Reposado by creating a preferences.plist in the same directory as the repoutil script. See "reposado_preferences.txt" for details on this file.
+
+5) Run repo_sync to replicate update catalogs and (optionally) update packages to the UpdatesRootDir directory. The first time you do this it may take several hours to complete if you are replicating packages as well as catalogs.
+
+6) Test things so far by visiting a catalog URL in your browser. If http://su.myorg.com is the URL for the updates root directory you created earlier, then http://su.myorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog 
+is the CatalogURL for the Snow Leopard updates catalog. You should see a plist version of the updates catalog displayed in your browser.
+
+7) Next test: run softwareupdate on a client, again pointing it to your Catalog URL:
+
+softwareupdate -l --CatalogURL "http://su.myorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog"
+
+If there are no errors, you've successfully configured Reposado and successfully replicated Apple Software Updates.

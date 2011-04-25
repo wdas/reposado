@@ -1,0 +1,401 @@
+#!/usr/bin/env python
+# encoding: utf-8
+#
+# Copyright 2011 Disney Enterprises, Inc. All rights reserved
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+
+# * Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+
+# * Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in
+# the documentation and/or other materials provided with the
+# distribution.
+
+# * The names "Disney", "Walt Disney Pictures", "Walt Disney Animation
+# Studios" or the names of its contributors may NOT be used to
+# endorse or promote products derived from this software without
+# specific prior written permission from Walt Disney Pictures.
+
+# Disclaimer: THIS SOFTWARE IS PROVIDED BY WALT DISNEY PICTURES AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE, NONINFRINGEMENT AND TITLE ARE DISCLAIMED.
+# IN NO EVENT SHALL WALT DISNEY PICTURES, THE COPYRIGHT HOLDER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND BASED ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+'''A tool to replicate most of the functionality of 
+Apple Software Update server'''
+
+import optparse
+import os
+#import sys
+
+from reposadolib import reposadocommon
+
+
+def deleteBranchCatalogs(branchname):
+    '''Removes catalogs corresponding to a deleted branch'''
+    for catalog_URL in reposadocommon.pref('AppleCatalogURLs'):
+        localcatalogpath = reposadocommon.getLocalPathNameFromURL(catalog_URL)
+        # now strip the '.sucatalog' bit from the name
+        if localcatalogpath.endswith('.sucatalog'):
+            localcatalogpath = localcatalogpath[0:-10]
+        branchcatalogpath = localcatalogpath + '_' + branchname + '.sucatalog'
+        if os.path.exists(branchcatalogpath):
+            os.remove(branchcatalogpath)
+
+
+def get_info(key):
+    '''Prints detail for a specific product'''
+    products = reposadocommon.getProductInfo()
+    if key in products:
+        downloaded_products_list = reposadocommon.getDownloadStatus()
+        if key in downloaded_products_list:
+            status = "Downloaded"
+        else:
+            status = "Not downloaded"
+        catalog_branches = reposadocommon.getCatalogBranches()
+        branchlist = []
+        for branch in catalog_branches.keys():
+            if key in catalog_branches[branch]:
+                branchlist.append(branch)
+        
+        reposadocommon.print_stdout('Product:   %s', key)
+        reposadocommon.print_stdout('Title:     %s', products[key]['title'])
+        reposadocommon.print_stdout('Version:   %s', products[key]['version'])
+        reposadocommon.print_stdout('Size:      %s',
+            humanReadable(products[key]['size']))
+        reposadocommon.print_stdout(
+            'Post Date: %s', products[key]['PostDate'])
+        if reposadocommon.pref('LocalCatalogURLBase'):
+            reposadocommon.print_stdout('Status:    %s', status)
+        if products[key].get('AppleCatalogs'):
+            reposadocommon.print_stdout('AppleCatalogs:')
+            for catalog in products[key]['AppleCatalogs']:
+                reposadocommon.print_stdout('           %s', catalog)
+        else:
+            print '           Product is deprecated.'
+            if products[key].get('OriginalAppleCatalogs'):
+                reposadocommon.print_stdout('OriginalAppleCatalogs:')
+                for catalog in products[key]['OriginalAppleCatalogs']:
+                    reposadocommon.print_stdout('           %s', catalog)
+        reposadocommon.print_stdout('Branches:')
+        if branchlist:
+            for branch in branchlist:
+                reposadocommon.print_stdout('           %s', branch)
+        else:
+            reposadocommon.print_stdout('           <None>')
+        reposadocommon.print_stdout('HTML Description:')
+        reposadocommon.print_stdout(products[key]['description'])
+    else:
+        reposadocommon.print_stdout('No product id %s found.', key)
+
+
+def list_branches():
+    '''Prints catalog branch names'''
+    catalog_branches = reposadocommon.getCatalogBranches()
+    for key in catalog_branches.keys():
+        reposadocommon.print_stdout(key)
+
+
+def humanReadable(size_in_bytes):
+    """Returns sizes in human-readable units."""
+    units = [(" KB", 2**20), (" MB", 2**30), (" GB", 2**40), (" TB", 2**50)]
+    for suffix, limit in units:
+        if size_in_bytes > limit:
+            continue
+        else:
+            return str(round(size_in_bytes/float(limit/2**10), 1)) + suffix
+            
+            
+def print_product_line(key, products, catalog_branches=None):
+    '''Prints a line of product info'''
+    if key in products:
+        if not catalog_branches:
+            branchlist = ''
+        else:
+            branchlist = []
+            for branch in catalog_branches.keys():
+                if key in catalog_branches[branch]:
+                    branchlist.append(branch)
+        deprecation_state = ''
+        if products[key].get('AppleCatalogs', []) == []:
+            deprecation_state = '(Deprecated)'
+        reposadocommon.print_stdout(
+            '%-15s %-50s %-10s %-10s %s %s',
+            key, 
+            products[key]['title'], 
+            products[key]['version'],
+            products[key]['PostDate'].strftime('%Y-%m-%d'),
+            branchlist, 
+            deprecation_state)
+            
+            
+def list_branch(branchname, sort_order='date', reverse_sort=False):
+    '''List products in a given catalog branch'''
+    catalog_branches = reposadocommon.getCatalogBranches()
+    if branchname in catalog_branches:
+        list_products(sort_order, reverse_sort, catalog_branches[branchname])
+        
+        
+def list_deprecated(sort_order='date', reverse_sort=False):
+    '''Find products that are no longer referenced in Apple\'s catalogs'''
+    products = reposadocommon.getProductInfo()
+    list_of_keys = []
+    for product_key in products.keys():
+        if products[product_key].get('AppleCatalogs', []) == []:
+            list_of_keys.append(product_key)
+    list_products(sort_order, reverse_sort, list_of_keys)
+
+
+def list_products(sort_order='date', reverse_sort=False, list_of_keys=None):
+    '''Prints a list of Software Update products'''
+
+    def sort_by_key(a, b):
+        """Internal comparison function for use with sorting"""
+        return cmp(a['sort_key'], b['sort_key'])
+
+    sort_keys = {'date': 'PostDate',
+                 'title': 'title',
+                 'id':    'key'}
+                 
+    sort_key = sort_keys.get(sort_order, 'date')
+        
+    products = reposadocommon.getProductInfo()
+    catalog_branches = reposadocommon.getCatalogBranches()
+    product_list = []
+    if list_of_keys == None:
+        list_of_keys = products.keys()
+    for key in list_of_keys:
+        product_dict = {}
+        product_dict['key'] = key
+        if sort_key == 'key':
+            product_dict['sort_key'] = key
+        else:
+            product_dict['sort_key'] = products[key][sort_key]
+        product_list.append(product_dict)
+    product_list.sort(sort_by_key)
+    if reverse_sort:
+        product_list.reverse()
+    for product in product_list:
+        print_product_line(product['key'], products, catalog_branches)
+        
+        
+def add_product_to_branch(parameters):
+    '''Adds one or more products to a branch. Takes a list of strings.
+    The last string must be the name of a branch catalog. All other 
+    strings must be product_ids.'''
+    # sanity checking
+    for item in parameters:
+        if item.startswith('-'):
+            reposadocommon.print_stderr('Ambiguous parameters: can\'t tell if  '
+                                     '%s is a parameter or option!', item)
+            return
+    branch_name = parameters[-1]
+    product_id_list = parameters[0:-1]
+    catalog_branches = reposadocommon.getCatalogBranches()
+    if not branch_name in catalog_branches:
+        reposadocommon.print_stderr('Catalog branch %s doesn\'t exist!',
+                                branch_name)
+        return
+    
+    products = reposadocommon.getProductInfo()
+    for product_id in product_id_list:
+        if not product_id in products:
+            reposadocommon.print_stderr(
+                'Product %s doesn\'t exist!', product_id)
+        else:
+            title = products[product_id]['title']
+            vers = products[product_id]['version']
+            if product_id in catalog_branches[branch_name]:
+                reposadocommon.print_stderr(
+                    '%s (%s-%s) is already in branch %s!', 
+                    product_id, title, vers, branch_name)
+            else:
+                reposadocommon.print_stdout(
+                    'Adding %s (%s-%s) to branch %s...', 
+                    product_id, title, vers, branch_name)
+                catalog_branches[branch_name].append(product_id)
+            
+    reposadocommon.writeCatalogBranches(catalog_branches)
+    reposadocommon.writeAllBranchCatalogs()
+
+
+def remove_product_from_branch(parameters):
+    '''Removes one or more products from a branch. Takes a list of strings.
+    The last string must be the name of a branch catalog. All other 
+    strings must be product_ids.'''
+    
+    # sanity checking 
+    for item in parameters:
+        if item.startswith('-'):
+            reposadocommon.print_stderr(
+                'Ambiguous parameters: can\'t tell if  '
+                '%s is a parameter or option!', item)
+            return
+            
+    branch_name = parameters[-1]
+    product_id_list = parameters[0:-1]
+    catalog_branches = reposadocommon.getCatalogBranches()
+    if not branch_name in catalog_branches:
+        reposadocommon.print_stderr(
+            'Catalog branch %s doesn\'t exist!', branch_name)
+        return
+    products = reposadocommon.getProductInfo()
+    for product_id in product_id_list:
+        if not product_id in products:
+            reposadocommon.print_stderr(
+                'Product %s doesn\'t exist!', product_id)
+        title = products[product_id]['title']
+        vers = products[product_id]['version']
+        if not product_id in catalog_branches[branch_name]:
+            reposadocommon.print_stderr('%s (%s-%s) is not in branch %s!', 
+                                    product_id, title, vers, branch_name)
+
+        reposadocommon.print_stdout('Removing %s (%s-%s) from branch %s...', 
+            product_id, title, vers, branch_name)
+        catalog_branches[branch_name].remove(product_id)
+    reposadocommon.writeCatalogBranches(catalog_branches)
+    reposadocommon.writeAllBranchCatalogs()
+
+
+def copy_branches(source_branch, dest_branch):
+    '''Copies source_branch to dest_branch, replacing dest_branch'''
+    # sanity checking 
+    for branch in [source_branch, dest_branch]:
+        if branch.startswith('-'):
+            reposadocommon.print_stderr(
+                'Ambiguous parameters: can\'t tell if %s is a branch name or'
+                ' option!', branch)
+            return
+    catalog_branches = reposadocommon.getCatalogBranches()
+    if not source_branch in catalog_branches:
+        reposadocommon.print_stderr('Branch %s does not exist!', source_branch)
+        return
+    if dest_branch in catalog_branches:
+        answer = raw_input(
+            'Really replace contents of branch %s with branch %s? [y/n] ' 
+             % (dest_branch, source_branch))
+        if not answer.lower().startswith('y'):
+            return
+    catalog_branches[dest_branch] = catalog_branches[source_branch]
+    reposadocommon.print_stdout('Copied contents of branch %s to branch %s.',
+        source_branch, dest_branch)
+    reposadocommon.writeCatalogBranches(catalog_branches)
+    reposadocommon.writeAllBranchCatalogs()
+    
+    
+def delete_branch(branchname):
+    '''Deletes a branch'''
+    catalog_branches = reposadocommon.getCatalogBranches()
+    if not branchname in catalog_branches:
+        reposadocommon.print_stderr('Branch %s does not exist!', branchname)
+        return
+    answer = raw_input('Really remove branch %s? [y/n] ' % branchname)
+    if answer.lower().startswith('y'):
+        del catalog_branches[branchname]
+        deleteBranchCatalogs(branchname)
+        reposadocommon.writeCatalogBranches(catalog_branches)
+    
+
+def new_branch(branchname):
+    '''Creates a new empty branch'''
+    catalog_branches = reposadocommon.getCatalogBranches()
+    if branchname in catalog_branches:
+        reposadocommon.print_stderr('Branch %s already exists!', branchname)
+        return
+    catalog_branches[branchname] = []
+    reposadocommon.writeCatalogBranches(catalog_branches)
+    
+    
+def main():
+    '''Main command processing'''
+    
+    p = optparse.OptionParser()
+    p.set_usage('''Usage: %prog [options]''')
+    p.add_option('--sync', action='store_true',
+                    help="""Synchronize Apple updates""")
+    p.add_option('--products', '--updates', action='store_true',
+                    dest='products',
+                    help="""List available updates""")
+    p.add_option('--deprecated', action='store_true',
+                    help="""List deprecated updates""")
+    p.add_option('--sort', metavar='SORT_ORDER', default='date',
+                    help="""Sort list. 
+                    Available sort orders are: date, title, id""")
+    p.add_option('--reverse', action='store_true',
+                    help="""Reverse sort order.""")
+    p.add_option('--branches', '--catalogs', 
+                    dest='list_branches', action='store_true',
+                    help="""List available branch catalogs""")
+    p.add_option('--new-branch',
+                    metavar='BRANCH_NAME',
+                    help='''Create new empty branch BRANCH_NAME.''')
+    p.add_option('--delete-branch',
+                    metavar='BRANCH_NAME',
+                    help='''Delete branch BRANCH_NAME.''')
+    p.add_option('--copy-branch', nargs=2,
+                    metavar='SOURCE_BRANCH DEST_BRANCH',
+                    help='''Copy all items from SOURCE_BRANCH to
+                    DEST_BRANCH. If DEST_BRANCH does not exist,
+                    it will be created.''')
+    p.add_option('--list-branch', '--list-catalog', 
+                    dest='branch',
+                    metavar='BRANCH_NAME',
+                    help="""List updates in branch BRANCH_NAME""")
+    p.add_option('--product-info', '--info', metavar='PRODUCT_ID',
+                    dest='info',
+                    help="""Print info on a specific update.""")
+    p.add_option('--add-product', '--add-update', '--add',
+                    dest='add_product', nargs=2,
+                    metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
+                    help='''Add one or more PRODUCT_IDs to catalog branch
+                    BRANCH_NAME.''')
+    p.add_option('--remove-product', nargs=2,
+                    metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
+                    help='''Remove one or more PRODUCT_IDs from catalog branch
+                    BRANCH_NAME.''')
+    
+    options, arguments  = p.parse_args()
+    
+    if options.sync:
+        pass
+        #sync(fast_scan=True)
+    if options.products:
+        list_products(sort_order=options.sort, reverse_sort=options.reverse)
+    if options.deprecated:
+        list_deprecated(sort_order=options.sort, reverse_sort=options.reverse)
+    if options.branch:
+        list_branch(options.branch, sort_order=options.sort,
+                    reverse_sort=options.reverse)
+    if options.list_branches:
+        list_branches()
+    if options.info:
+        get_info(options.info)
+    if options.new_branch:
+        new_branch(options.new_branch)
+    if options.copy_branch:
+        copy_branches(options.copy_branch[0], options.copy_branch[1])
+    if options.delete_branch:
+        delete_branch(options.delete_branch)
+    if options.add_product:
+        params = list(options.add_product)
+        params.extend(arguments)
+        add_product_to_branch(params)
+    if options.remove_product:
+        params = list(options.remove_product)
+        params.extend(arguments)
+        remove_product_from_branch(params)
+
+if __name__ == '__main__':
+    main()

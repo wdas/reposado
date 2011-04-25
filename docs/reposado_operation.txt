@@ -1,0 +1,104 @@
+A basic guide to Reposado operation.
+
+See "getting_started.txt" for initial setup, configuration, and testing.
+
+Once you have successfully set up and configured Reposado, you have a local mirror of Apple's Software Update servers. Your clients can use the locally mirrored catalogs (and optionally, update packages) for Apple updates.
+
+You'll almost certainly want to run the repo_sync tool periodically to download catalog and package updates. The exact mechanism by which you might do this varies from platform to platform. On a Linux or other flavor of Unix machine, you'd typically add a cron job to do this. You may also do this on OS X or OS X Server, or you can implement a periodic job, or a launchd task. You may run this as frequently or infrequently as you wish, but Apple's tools sync with Apple once a day, so you might consider that as a guide.
+
+If all you want or need is a local replica of Apple's Software Updates in order to conserve your organization's Internet bandwidth usage, you need not do anything other than the tasks of the initial configuration and setting up periodic execution of the sync script. If you'd like to be able to manage which updates are made available to your client machines, the repoutil tool provides the means to do so.
+
+CatalogURLs
+
+By default, Reposado replicates three update catalogs from Apple's servers:
+
+http://swscan.apple.com/content/catalogs/index.sucatalog
+http://swscan.apple.com/content/catalogs/others/index-leopard.merged-1.sucatalog
+http://swscan.apple.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog
+
+These are the update catalogs for Tiger, Leopard, and Snow Leopard clients, respectively. You may point any or all of your client machines to the replicated versions of these catalogs. The clients will get the latest updates from Apple as soon as they've been replicated to your Reposado server.
+
+If you'd like to control the availability of updates, you must create "branch" catalogs, which contain subsets of the available updates. You then point some or all of your clients to these branch catalogs instead of the "raw" catalogs that come from Apple.
+
+Creating branch catalogs
+
+Start by creating an empty branch:
+
+repoutil --new-branch testing
+
+This creates a new, empty branch named "testing".  This name is appended to the "raw" apple catalog names, so that the CatalogURLs become something like:
+
+http://su.myorg.com/content/catalogs/index_testing.sucatalog
+http://su.myorg.com/content/catalogs/others/index-leopard.merged-1_testing.sucatalog
+http://su.myorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1_testing.sucatalog
+
+..but not until you've added something to the testing branch. 
+
+Adding products to a branch catalog
+
+Get a list of products:
+
+repoutil --products
+...long list omitted for brevity...
+041-0560        Safari                      5.0.5      2011-04-14 []
+zzzz041-0565    Safari                      5.0.5      2011-04-14 []
+zzzz041-0531    iTunes                      10.2.2     2011-04-18 []
+zzzz041-0532    iTunes                      10.2.2     2011-04-18 []
+
+Add both Safaris and iTunes to testing:
+
+repoutil --add-product 041-0560 zzzz041-0565 zzzz041-0531 zzzz041-0532 testing
+Adding 041-0560 (Safari-5.0.5) to branch testing...
+Adding zzzz041-0565 (Safari-5.0.5) to branch testing...
+Adding zzzz041-0531 (iTunes-10.2.2) to branch testing...
+Adding zzzz041-0532 (iTunes-10.2.2) to branch testing...
+
+And now the testing catalogs are available at URLs similar to those listed above, and the testing catalogs offer only Safari and iTunes.
+
+Removing products from a branch catalog
+
+You can remove products from branch catalogs:
+
+repoutil --remove-product zzzz041-0531 zzzz041-0532 testing
+Removing zzzz041-0531 (iTunes-10.2.2) from branch testing...
+Removing zzzz041-0532 (iTunes-10.2.2) from branch testing...
+
+would remove both iTunes 10.2.2.
+
+You can list the contents of branch catalogs:
+
+repoutil --list-branch testing
+041-0560        Safari                      5.0.5      2011-04-14 ['testing']
+zzzz041-0565    Safari                      5.0.5      2011-04-14 ['testing']
+
+and copy one branch to another:
+
+repoutil --copy-branch testing release
+Really replace contents of branch release with branch testing? [y/n] y
+Copied contents of branch testing to branch release.
+
+One possible branch catalog workflow
+
+A very small number of your machines are configured to use the "raw" catalogs from Apple. As new updates are released, after a short delay (a day or so?) you add them to the "testing" branch. Your "testing" group of machines are configured to use the "testing" CatalogURLs for their updates. After a time of testing to make sure there are no issues, you add new updates to the "release" branch. Most machines in your organization are configured to use the "release" CatalogURLs.
+
+In this way, new updates are tested before being released to the majority of your machines.
+
+Another use for branch catalogs: if you had a set of machines that must remain on a specific OS release for compatibility with a specific application, you could create one or more special branch catalogs that contained no Mac OS X updates, but only updates to Safari, iTunes, the iLife and iWork apps. In this way you could update the other applications while leaving the OS itself at a specific version.
+
+Deprecated products
+
+Items from Apple's Software Update service can become "deprecated". This commonly occurs when a newer version of an update is made available. For example, when Apple releases a new update to iTunes, all older iTunes updates are deprecated and no longer available from Apple's Software Update servers. Similarly, new updates for Mac OS X cause older updates to be deprecated.
+
+This behavior can sometimes present problems for system administrators. Let's say you had made the 10.6.6 update available to all the machines you manage, and some had updated and some had not yet. Apple then released the Mac OS X 10.6.7 update, which causes the 10.6.6 update to disappear from Apple's update servers. If you are not ready to move to Mac OS X 10.6.7 (because you need testing time), but some of your machines are still running 10.6.5 or earlier, if you are using Apple's Software Update Service there is no way to update those machines to 10.6.6 using Apple's tools.
+
+However, Reposado caches all updates it downloads from Apple and does not automatically remove deprecated updates. This enables you to continue to offer deprecated updates in a branch catalog until you are ready to replace the deprecated update with the new version.
+
+This feature is also a responsibility -- it is the admin's responsibility to remove deprecated products from branch catalogs when adding their updated versions to the same branch. Deprecated products are tagged as such in product listings:
+
+repoutil --list-branch testing
+zzzz061-9636   iTunes   10.2   2011-03-02 ['release', 'testing'] (Deprecated)
+zzzz041-0306   iTunes   10.2   2011-03-02 ['release', 'testing'] (Deprecated)
+
+When adding a newer version of iTunes to the testing or release branches, you'd want to be certain to remove these older, deprecated versions.
+
+
