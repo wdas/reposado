@@ -1,12 +1,12 @@
-INTRODUCTION
+**INTRODUCTION**
 
 Reposado is a set of tools written in Python that replicate the key functionality of Apple's Software Update Service, available as part of Mac OS X Server.
 
-LICENSE
+**LICENSE**
 
 Reposado is licensed under the new BSD license.
 
-FEATURES AND CAPABILITIES
+**FEATURES AND CAPABILITIES**
 
 Reposado, together with the "curl" binary tool and a web server such as Apache 2, enables one to host a local Apple Software Update Server on any hardware and OS of your choice.
 
@@ -16,8 +16,8 @@ Additionally, Reposado provides a command-line tool (repoutil) that enables you 
 
 If you configure Reposado to also download the actual updates as well as the catalogs, you can continue to offer updates that have been superseded by more recent updates. For example, if you are currently offering the 10.6.7 updates to your clients, and Apple releases a 10.6.8 update, you can continue to offer the (deprecated) 10.6.7 update until you are ready to release the newer update to your clients. You can even offer the 10.6.7 update to your "release" clients while offering the 10.6.8 update to your "testing" clients. Offering "deprecated" Apple Software Updates is a feature that is difficult with Apple's tools.
 
-LIMITATIONS AND DEPENDENCIES
+**LIMITATIONS AND DEPENDENCIES**
 
 Apple's Software Update Service does a few things. Primarily, it replicates software updates from Apple's servers, downloading them to a local machine. Secondly, it functions as a web server to actually serve these updates to client machines. Reposado does not duplicate the web server portion of Apple's Software Update Service. Instead you may use any existing web server you wish.
 
-Reposado also currently relies on the command-line "curl" binary to download updates from Apple's servers. curl is available on OS X, RedHat Linux, and many other OSes, including Win32 and Win64 versions. See http://curl.haxx.se for more information.
+Reposado also currently relies on the command-line "curl" binary to download updates from Apple's servers. curl is available on OS X, RedHat Linux, and many other OSes, including Win32 and Win64 versions. See [http://curl.haxx.se](http://curl.haxx.se) for more information.
