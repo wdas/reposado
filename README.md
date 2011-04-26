@@ -6,6 +6,10 @@ Reposado is a set of tools written in Python that replicate the key functionalit
 
 Reposado is licensed under the new BSD license.
 
+**DISCUSSION GROUP**
+
+Discussion for users and developers of Reposado is [here.](http://groups.google.com/group/reposado)
+
 **FEATURES AND CAPABILITIES**
 
 Reposado, together with the "curl" binary tool and a web server such as Apache 2, enables you to host a local Apple Software Update Server on any hardware and OS of your choice.
