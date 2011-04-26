@@ -9,7 +9,7 @@ What you need:
 - A web server
 - Storage space for the catalogs and update packages. If you are replicating the update packages, you'll need approximately 40GB of space as of April 2011. The need for space grows as additional updates are released by Apple. If you are only replicating catalogs, you'll probably need less than 100MB of space, though the exact amount of space needed depends on the number of branch catalogs you create.
 
-1) Download the Reposado tools.
+1) Download the Reposado tools, typically by doing a git clone of the repo, or downloading the source from GitHub. The tools are in the code directory. 
 
 2) Create a directory in which to store replicated catalogs and updates, and another to store Reposado metadata. These may share a parent directory, like so:
 	/Volumes/data/reposado/html
@@ -18,7 +18,19 @@ Make sure you have enough space for the replicated catalogs and updates.
 
 3) Configure your web server to serve the contents of the updates root directory you created ("/Volumes/data/reposado/html" in the example above). If you are planning to replicate and serve the actual update packages as well as the catalogs, make note of the URL needed to access the updates root directory via HTTP. This will be the LocalCatalogURLBase when configuring Reposado in the next step.
 
-4) Configure Reposado by creating a preferences.plist in the same directory as the repoutil script. See "reposado_preferences.txt" for details on this file.
+4) Configure Reposado by running:
+
+repoutil --config
+
+You'll be asked three questions:
+
+Path to store replicated catalogs and updates: 
+Path to store Reposado metadata: 
+Base URL for your local Software Update Service
+(Example: http://su.your.org -- leave empty if you are not replicating updates): 
+
+Answer appropriately using your decisions in steps 2 and 3 above.
+See "reposado_preferences.txt" for more details on Reposado preferences.
 
 5) Run repo_sync to replicate update catalogs and (optionally) update packages to the UpdatesRootDir directory. The first time you do this it may take several hours to complete if you are replicating packages as well as catalogs.
 

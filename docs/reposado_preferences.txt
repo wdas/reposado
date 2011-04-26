@@ -15,6 +15,8 @@ http://su.myorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1.s
 
 If LocalCatalogURLBase is undefined, only Apple catalogs will be replicated and the URLs will not be re-written. This allows you to have custom catalogs for Apple Software Update, but clients will still download the actual update packages from Apple's servers. If Reposado is configured this way, you will not be able to offer deprecated updates to clients.
 
+repoutil --config will allow you to quickly and easily edit the above three values (UpdatesRootDir, UpdatesMetadataDir, LocalCatalogURLBase).
+
 Optional keys:
 
 AppleCatalogURLs
