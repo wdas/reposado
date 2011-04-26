@@ -323,8 +323,8 @@ def main():
     
     p = optparse.OptionParser()
     p.set_usage('''Usage: %prog [options]''')
-    p.add_option('--sync', action='store_true',
-                    help="""Synchronize Apple updates""")
+    #p.add_option('--sync', action='store_true',
+    #                help="""Synchronize Apple updates""")
     p.add_option('--products', '--updates', action='store_true',
                     dest='products',
                     help="""List available updates""")
