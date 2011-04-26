@@ -90,6 +90,41 @@ def validPreferences():
     return prefs_valid
 
 
+def configure_prefs():
+    """Configures prefs for use"""   
+    _prefs = {}
+    keysAndPrompts = [
+        ('UpdatesRootDir', 
+         'Path to store replicated catalogs and updates'),
+        ('UpdatesMetadataDir', 
+         'Path to store Reposado metadata'),
+        ('LocalCatalogURLBase', 
+         'Base URL for your local Software Update Service\n(Example: http://su.your.org -- leave empty if you are not replicating updates)'),
+        ]
+    if not os.path.exists(pref('CurlPath')):
+        keysAndPrompts.append(
+        ('CurlPath', 'Path to curl tool (Example: /usr/bin/curl)'))
+
+    for (key, prompt) in keysAndPrompts:
+        newvalue = raw_input('%15s [%s]: ' % (prompt, pref(key)))
+        _prefs[key] = newvalue or pref(key) or ''
+
+    prefspath = prefsFilePath()
+    # retrieve current preferences
+    try:
+        prefs = plistlib.readPlist(prefspath)
+    except (IOError, ExpatError):
+        prefs = {}
+    # merge edited preferences
+    for key in _prefs.keys():
+        prefs[key] = _prefs[key]
+    # write preferences to our file
+    try:
+        plistlib.writePlist(prefs, prefspath)
+    except (IOError, ExpatError):
+        print_stderr('Could not save configuration to %s', prefspath)
+
+
 def str_to_ascii(s):
     """Given str (unicode, latin-1, or not) return ascii.
 

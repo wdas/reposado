@@ -316,8 +316,12 @@ def new_branch(branchname):
         return
     catalog_branches[branchname] = []
     reposadocommon.writeCatalogBranches(catalog_branches)
-    
-    
+
+
+def config():
+    reposadocommon.configure_prefs()
+
+
 def main():
     '''Main command processing'''
     
@@ -325,6 +329,8 @@ def main():
     p.set_usage('''Usage: %prog [options]''')
     #p.add_option('--sync', action='store_true',
     #                help="""Synchronize Apple updates""")
+    p.add_option('--config', action='store_true',
+                    help="""Configure Reposado preferences.""")
     p.add_option('--products', '--updates', action='store_true',
                     dest='products',
                     help="""List available updates""")
@@ -368,9 +374,11 @@ def main():
     
     options, arguments  = p.parse_args()
     
-    if options.sync:
-        pass
-        #sync(fast_scan=True)
+    #if options.sync:
+    #    pass
+    #    #sync(fast_scan=True)
+    if options.config:
+        config()
     if options.products:
         list_products(sort_order=options.sort, reverse_sort=options.reverse)
     if options.deprecated:
