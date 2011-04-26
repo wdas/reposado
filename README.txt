@@ -1,5 +1,7 @@
 Reposado is a set of tools written in Python that replicate some of the functionality of Apple's Software Update Service, available as part of Mac OS X Server.
 
+Reposado is licensed under the new BSD license.
+
 Reposado, together with the "curl" binary tool and a web server such as Apache 2, enables one to host a local Apple Software Update Server on any hardware and OS of your choice.
 
 Reposado contains a tool (repo_sync) to download Software Update catalogs and (optionally) update packages from Apple's servers, enabling you to host them from a local web server.
