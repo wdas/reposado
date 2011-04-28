@@ -201,6 +201,11 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
         print >> fileobj, 'output = "%s"' % tempdownloadpath
         print >> fileobj, 'ciphers = HIGH,!ADH' # use only >=128 bit SSL
         print >> fileobj, 'url = "%s"' % url
+        
+        # add additional options from our prefs
+        if reposadocommon.pref('AdditionalCurlOptions'):
+            for line in reposadocommon.pref('AdditionalCurlOptions'):
+                print >> fileobj, line
 
         if os.path.exists(tempdownloadpath):
             if resume:
