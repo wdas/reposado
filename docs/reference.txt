@@ -124,6 +124,10 @@ repoutil --add-update=PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME
 repoutil --add=PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME
                         
 Add one or more PRODUCT_IDs to catalog branch BRANCH_NAME.
+You may add all cached products, including deprecated products to a branch catalog by specifying 'all':
+
+repoutil --add-product all BRANCH_NAME
+
   
 repoutil --remove-product=PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME
                         

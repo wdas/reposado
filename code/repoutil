@@ -208,8 +208,11 @@ def add_product_to_branch(parameters):
         reposadocommon.print_stderr('Catalog branch %s doesn\'t exist!',
                                 branch_name)
         return
-    
+        
     products = reposadocommon.getProductInfo()
+    if 'all' in product_id_list:
+        product_id_list = products.keys()
+    
     for product_id in product_id_list:
         if not product_id in products:
             reposadocommon.print_stderr(
@@ -366,7 +369,9 @@ def main():
                     dest='add_product', nargs=2,
                     metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
                     help='''Add one or more PRODUCT_IDs to catalog branch
-                    BRANCH_NAME.''')
+                    BRANCH_NAME.  --add_product all BRANCH_NAME will add
+                    all cached products, including deprecated products, to
+                    catalog BRANCH_NAME.''')
     p.add_option('--remove-product', nargs=2,
                     metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
                     help='''Remove one or more PRODUCT_IDs from catalog branch
