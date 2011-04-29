@@ -1,4 +1,27 @@
-This is a reference to the command-line options for the repoutil tool.
+repo_sync
+=========
+
+repo_sync downloads software update catalogs from Apple's servers and (if configured) also downloads software update packages to be served from your web server.
+
+Options:
+--------
+
+--recheck
+
+Normally, once downloaded, software update packages are not checked for changes against Apple's servers. If you'd like to reverify all downloaded packages (at the cost of increased execution time and additional Internet bandwidth usage), include the --recheck option when calling repo_sync.
+
+
+repoutil
+========
+
+repoutil is a tool for getting info about available updates, managing branch catalogs, and configuring Reposado.
+
+Options:
+--------
+
+repoutil --configure
+
+Configure key preferences for Reposado. Note this command does not allow you to edit all available Reposado preferences. See reposado_preferences.txt for more information.
 
 repoutil --products [--sort <sort_key>] [--reverse]
 repoutil --updates [--sort <sort_key>] [--reverse]
