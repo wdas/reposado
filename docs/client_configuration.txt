@@ -1,0 +1,49 @@
+Configuring clients to use your Reposado server
+-----------------------------------------------
+
+If you've never used the Software Update Service on Mac OS X Server, you may be unfamiliar with configuring Mac OS X Clients to use a Software Update Server other than Apple's "main" server.
+
+This setting may be controlled by setting the value of CatalogURL in /Library/Preferences/com.apple.SoftwareUpdate.plist. This is commonly done using the command-line 'defaults' tool:
+
+sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate CatalogURL <catalog_url>
+
+where <catalog_url> is the URL to the catalog file.
+
+
+Tiger Clients
+-------------
+
+Tiger clients should use a CatalogURL of the form:
+
+http://su.yourorg.com/content/catalogs/index.sucatalog
+
+This will offer the same updates as if the client was pointed directly at Apple's servers. If you are using branch catalogs to filter available updates, or to offer deprecated updates, the CatalogURL will take the form of:
+
+http://su.yourorg.com/content/catalogs/index_<branchname>.sucatalog
+
+where <branchname> is the name of one of the branch catalogs you've created.
+
+
+Leopard Clients
+---------------
+
+Leopard clients should use a CatalogURL of the form:
+
+http://su.yourorg.com/content/catalogs/others/index-leopard.merged-1.sucatalog
+
+Branch CatalogURLs take the form of:
+
+http://su.yourorg.com/content/catalogs/index-leopard.merged-1_<branchname>.sucatalog
+
+
+Snow Leopard Clients
+--------------------
+
+Snow Leopard clients should use a CatalogURL of the form:
+
+http://su.yourorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog
+
+Branch CatalogURLs take the form of:
+
+http://su.yourorg.com/content/catalogs/index-leopard-snowleopard.merged-1_<branchname>.sucatalog
+
