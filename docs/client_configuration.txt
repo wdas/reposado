@@ -1,7 +1,7 @@
 Configuring clients to use your Reposado server
------------------------------------------------
+===============================================
 
-If you've never used the Software Update Service on Mac OS X Server, you may be unfamiliar with configuring Mac OS X Clients to use a Software Update Server other than Apple's "main" server.
+If you've never used the Software Update Service on Mac OS X Server, you may be unfamiliar with configuring Mac OS X clients to use a Software Update Server other than Apple's "main" server.
 
 This setting may be controlled by setting the value of CatalogURL in /Library/Preferences/com.apple.SoftwareUpdate.plist. This is commonly done using the command-line 'defaults' tool:
 
@@ -33,7 +33,7 @@ http://su.yourorg.com/content/catalogs/others/index-leopard.merged-1.sucatalog
 
 Branch CatalogURLs take the form of:
 
-http://su.yourorg.com/content/catalogs/index-leopard.merged-1_<branchname>.sucatalog
+http://su.yourorg.com/content/catalogs/others/index-leopard.merged-1_<branchname>.sucatalog
 
 
 Snow Leopard Clients
@@ -45,5 +45,5 @@ http://su.yourorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1
 
 Branch CatalogURLs take the form of:
 
-http://su.yourorg.com/content/catalogs/index-leopard-snowleopard.merged-1_<branchname>.sucatalog
+http://su.yourorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1_<branchname>.sucatalog
 
