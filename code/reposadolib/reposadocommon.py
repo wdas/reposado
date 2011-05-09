@@ -79,14 +79,16 @@ def validPreferences():
     '''Validates our preferences to make sure needed values are defined
     and paths exist. Returns boolean.'''
     prefs_valid = True
-    if not pref('UpdatesRootDir'):
-        print_stderr('ERROR: UpdatesRootDir is not defined in %s.',
-                        prefsFilePath())
-        prefs_valid = False
-    if not pref('UpdatesMetadataDir'):
-        print_stderr('ERROR: UpdatesMetadataDir is not defined in %s.',
-                        prefsFilePath())
-        prefs_valid = False
+    for pref_name in ['UpdatesRootDir',  'UpdatesMetadataDir']:
+        preference = pref(pref_name)
+        if not preference:
+            print_stderr('ERROR: %s is not defined in %s.' %
+                            (pref_name, prefsFilePath()))
+            prefs_valid = False
+        elif not os.path.exists(preference):
+             print_stderr('WARNING: %s "%s" does not exist.'
+                          ' Will attempt to create it.' %
+                          (pref_name, preference))
     return prefs_valid
 
 
@@ -123,6 +125,9 @@ def configure_prefs():
         plistlib.writePlist(prefs, prefspath)
     except (IOError, ExpatError):
         print_stderr('Could not save configuration to %s', prefspath)
+    else:
+        # check to make sure they're valid
+        unused_value = validPreferences()
 
 
 def str_to_ascii(s):
