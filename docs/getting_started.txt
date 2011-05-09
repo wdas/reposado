@@ -20,7 +20,7 @@ Make sure you have enough space for the replicated catalogs and updates. Make su
 
 4) Configure Reposado by running:
 
-repoutil --config
+repoutil --configure
 
 You'll be asked three questions:
 
@@ -31,6 +31,8 @@ Base URL for your local Software Update Service
 
 Answer appropriately using your decisions in steps 2 and 3 above.
 See "reposado_preferences.txt" for more details on Reposado preferences.
+
+NOTE: if you enter the paths by dragging folders into a Terminal window from the Finder, be aware that the Finder adds an extra space to the end of pathnames. Delete this space or your results may not be what you expect. You can always run repoutil --configure again to check and modify the configuration if needed.
 
 5) Run repo_sync to replicate update catalogs and (optionally) update packages to the UpdatesRootDir directory. The first time you do this it may take several hours to complete if you are replicating packages as well as catalogs.
 
