@@ -146,6 +146,7 @@ def str_to_ascii(s):
 
 def concat_message(msg, *args):
     """Concatenates a string with any additional arguments; drops unicode."""
+    msg = str_to_ascii(msg)
     if args:
         args = [str_to_ascii(arg) for arg in args]
         try:
