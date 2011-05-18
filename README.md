@@ -12,7 +12,7 @@ Discussion for users and developers of Reposado is [here.](http://groups.google.
 
 **FEATURES AND CAPABILITIES**
 
-Reposado, together with the "curl" binary tool and a web server such as Apache 2, enables you to host a local Apple Software Update Server on any hardware and OS of your choice.
+Reposado, together with Python, the "curl" binary tool and a web server such as Apache 2, enables you to host a local Apple Software Update Server on any hardware and OS of your choice.
 
 Reposado contains a tool (repo_sync) to download Software Update catalogs and (optionally) update packages from Apple's servers, enabling you to host them from a local web server.
 
