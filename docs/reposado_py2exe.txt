@@ -1,0 +1,13 @@
+Using reposade with py2exe
+===========================
+
+	To successfully use reposado with py2exe (a Python Distutils extension which converts Python scripts into executable Windows programs, able to run without requiring a Python installation, http://www.py2exe.org/) some minor modification were made to the original code.
+
+	You just need to install py2exe and run
+python setup.py py2exe 
+in the main directory were reposados setup.py resides.
+Of course you have to supply a working curl binary for windows, but that is just one file that you can put anywhere (just be sure to specify the path)
+
+	You will end up with a folder dist in which you find all files that you need to run it without a Python installation. Especially the two main scripts repo_sync and repoutil are converted to Windows executables. You can run them just from the command line or wherever you want.
+
+	reposados configuration file 'preferences.plist' will always be created and searched in the main directory were these two exes reside, regardless from where you ran the commands.

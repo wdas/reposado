@@ -186,7 +186,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
     header['http_result_description'] = ""
 
     curldirectivepath = os.path.join(TMPDIR, 'curl_temp')
-    tempdownloadpath = destinationpath + '.download'
+    tempdownloadpath = os.path.normpath(destinationpath + '.download')
 
     # we're writing all the curl options to a file and passing that to
     # curl so we avoid the problem of URLs showing up in a process listing
@@ -198,7 +198,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
         print >> fileobj, 'fail'           # throw error if download fails
         print >> fileobj, 'dump-header -'  # dump headers to stdout
         print >> fileobj, 'speed-time = 30' # give up if too slow d/l
-        print >> fileobj, 'output = "%s"' % tempdownloadpath
+        #print >> fileobj, 'output = "%s"' % tempdownloadpath # does not work on windows
         print >> fileobj, 'ciphers = HIGH,!ADH' # use only >=128 bit SSL
         print >> fileobj, 'url = "%s"' % url
         
@@ -227,11 +227,12 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
         fileobj.close()
     except Exception, e:
         raise CurlError(-5, 'Error writing curl directive: %s' % str(e))
-
+    
     cmd = [reposadocommon.pref('CurlPath'),
             '-q',                    # don't read .curlrc file
             '--config',              # use config file
-            curldirectivepath]
+            curldirectivepath,
+            '-o', tempdownloadpath]  # because output in config file doesn't work on windows
 
     proc = subprocess.Popen(cmd, shell=False, bufsize=1,
                             stdin=subprocess.PIPE,
@@ -407,7 +408,7 @@ def replicateURLtoFilesystem(full_url, root_dir=None,
         (unused_scheme, unused_netloc,
          path, unused_query, unused_fragment) = urlparse.urlsplit(full_url)
         relative_url = path.lstrip('/')
-        
+    relative_url = os.path.normpath(relative_url)
     local_file_path = os.path.join(root_dir, relative_url) + appendToFilename
     local_dir_path = os.path.dirname(local_file_path)
     if copy_only_if_missing and os.path.exists(local_file_path):

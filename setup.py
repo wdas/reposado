@@ -1,5 +1,6 @@
 import os
 from distutils.core import setup
+import py2exe
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -31,4 +32,5 @@ setup(
         "Topic :: System :: Archiving :: Mirroring",
         "Topic :: System :: Installation/Setup",
     ],
+    console=["code/repo_sync","code/repoutil"],
 )
