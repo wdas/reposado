@@ -53,6 +53,16 @@ from xml.dom import minidom
 
 from reposadolib import reposadocommon
 
+def os_rename(src, dst):
+    '''Pseudo-atomic implementation of os.rename() that works under windows
+    Idea from: http://bugs.python.org/issue8828#msg106599
+    '''
+    if os.name in ('nt', 'ce'):
+        if os.path.exists(dst):
+            os.unlink(dst)
+        os.rename(src, dst)
+    else:
+        os.rename(src, dst)
 
 def parseServerMetadata(filename):
     '''Parses a softwareupdate server metadata file, looking for information 
@@ -300,7 +310,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
             temp_download_exists:
             downloadedsize = os.path.getsize(tempdownloadpath)
             if downloadedsize >= targetsize:
-                os.rename(tempdownloadpath, destinationpath)
+                os_rename(tempdownloadpath, destinationpath)
                 return header
             else:
                 # not enough bytes retreived
@@ -309,7 +319,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
                 raise CurlError(-5, 'Expected %s bytes, got: %s' %
                                         (targetsize, downloadedsize))
         elif http_result.startswith('2') and temp_download_exists:
-            os.rename(tempdownloadpath, destinationpath)
+            os_rename(tempdownloadpath, destinationpath)
             return header
         elif http_result == '304':
             return header
