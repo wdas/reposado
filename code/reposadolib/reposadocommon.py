@@ -41,17 +41,23 @@ Created by Greg Neagle on 2011-03-03.
 
 import sys
 import os
+import imp
 import plistlib
 import urlparse
 import warnings
 from xml.parsers.expat import ExpatError
 
+def get_main_dir():
+    '''Returns the directory name of the script or the directory name of the exe if py2exe was used
+    Code from http://www.py2exe.org/index.cgi/HowToDetermineIfRunningFromExe
+    '''
+    if (hasattr(sys, "frozen") or hasattr(sys, "importers") or imp.is_frozen("__main__")):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(sys.argv[0])
 
 def prefsFilePath():
     '''Returns path to our preferences file.'''
-    mydir = os.path.dirname(os.path.abspath(__file__))
-    parentdir = os.path.dirname(mydir)
-    return os.path.join(parentdir, 'preferences.plist')
+    return os.path.join(get_main_dir(), 'preferences.plist')
 
 
 def pref(prefname):
