@@ -34,7 +34,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 """
-pysus_sync
+repo_sync
 
 Created by Greg Neagle on 2011-03-03.
 """
@@ -63,6 +63,7 @@ def os_rename(src, dst):
         os.rename(src, dst)
     else:
         os.rename(src, dst)
+
 
 def parseServerMetadata(filename):
     '''Parses a softwareupdate server metadata file, looking for information 
@@ -624,6 +625,10 @@ def main():
                  help="""Recheck already downloaded packages for changes.""")
     options, arguments = p.parse_args()
     if reposadocommon.validPreferences():
+        if not os.path.exists(reposadocommon.pref('CurlPath')):
+            reposadocommon.print_stderr('ERROR: curl tool not found at %s',
+                reposadocommon.pref('CurlPath'))
+            exit(-1)
         if reposadocommon.pref('LocalCatalogURLBase') == None:
             download_packages = False
         else:
