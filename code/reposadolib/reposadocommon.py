@@ -330,7 +330,7 @@ def writeBranchCatalogs(localcatalogpath):
                 # First check to see if this product was ever in this
                 # catalog
                 original_catalogs = product_info[product_key].get(
-                    'OriginalAppleCatalogs',[])
+                    'OriginalAppleCatalogs', [])
                 for original_catalog in original_catalogs:
                     if original_catalog.endswith(localcatalogname):
                         # this item was originally in this catalog, so
