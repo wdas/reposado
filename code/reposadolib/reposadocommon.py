@@ -65,7 +65,8 @@ def pref(prefname):
     default_prefs = {
         'AppleCatalogURLs':                    ['http://swscan.apple.com/content/catalogs/index.sucatalog',
 'http://swscan.apple.com/content/catalogs/others/index-leopard.merged-1.sucatalog',
-'http://swscan.apple.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog'],
+'http://swscan.apple.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog',
+'http://swscan.apple.com/content/catalogs/others/index-lion-snowleopard-leopard.merged-1.sucatalog'],
         'PreferredLocalizations': ['English', 'en'],
         'CurlPath': '/usr/bin/curl'
     }
