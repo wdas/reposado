@@ -49,7 +49,7 @@ import time
 import tempfile
 import urlparse
 from xml.dom import minidom
-#from xml.parsers.expat import ExpatError
+from xml.parsers.expat import ExpatError
 
 from reposadolib import reposadocommon
 
@@ -72,7 +72,12 @@ def parseServerMetadata(filename):
     title = ''
     vers = ''
     description = ''
-    md_plist = plistlib.readPlist(filename)
+    try:
+        md_plist = plistlib.readPlist(filename)
+    except (OSError, IOError, ExpatError), err:
+        reposadocommon.print_stderr(
+            'Error reading %s: %s', filename, err)
+        return {}
     vers = md_plist.get('CFBundleShortVersionString','')
     localization = md_plist.get('localization', {})
     languages = localization.keys()
@@ -376,7 +381,7 @@ def getURL(url, destination_path):
 _ETAG = {}
 def get_saved_etag(url):
     '''Retrieves a saved etag'''
-    global _ETAG
+    #global _ETAG
     if _ETAG == {}:
         reposadocommon.getDataFromPlist('ETags.plist')
     if url in _ETAG:
@@ -387,7 +392,7 @@ def get_saved_etag(url):
 
 def record_etag(url, etag):
     '''Saves an etag in our internal dict'''
-    global _ETAG
+    #global _ETAG
     _ETAG[url] = etag
 
 
@@ -460,10 +465,14 @@ def archiveCatalog(catalogpath):
         catalogname = catalogname[0:-6]
     archivepath = os.path.join(archivedir, catalogname + modtimestring)
     if not os.path.exists(archivepath):
-        catalog = plistlib.readPlist(catalogpath)
-        plistlib.writePlist(catalog, archivepath)
-        # might as well set the mod time of the archive file to match
-        os.utime(archivepath, (time.time(), modtime))
+        try:
+            catalog = plistlib.readPlist(catalogpath)
+            plistlib.writePlist(catalog, archivepath)
+            # might as well set the mod time of the archive file to match
+            os.utime(archivepath, (time.time(), modtime))
+        except (OSError, IOError, ExpatError), err:
+            reposadocommon.print_stderr(
+                'Error archiving %s: %s', catalogpath, err)
 
 
 def getPreferredLocalization(list_of_localizations):
@@ -516,7 +525,12 @@ def sync(fast_scan=False, download_packages=True):
             archiveCatalog(localcatalogpath)
         localcatalogpath = replicateURLtoFilesystem(catalog_url, 
             appendToFilename='.apple')
-        catalog = plistlib.readPlist(localcatalogpath)
+        try:
+            catalog = plistlib.readPlist(localcatalogpath)
+        except (OSError, IOError, ExpatError), err:
+            reposadocommon.print_stderr(
+                'Error reading %s: %s', localcatalogpath, err)
+            continue
         if 'Products' in catalog:
             product_keys = list(catalog['Products'].keys())
             reposadocommon.print_stdout('%s products found in %s',
@@ -532,7 +546,6 @@ def sync(fast_scan=False, download_packages=True):
                     products[product_key]['AppleCatalogs'] = [catalog_url]
                     product = catalog['Products'][product_key]
                     products[product_key]['CatalogEntry'] = product
-                    server_metadata = None
                     if download_packages and 'ServerMetadataURL' in product:
                         try:
                             unused_path = replicateURLtoFilesystem(
@@ -623,7 +636,7 @@ def main():
     p.set_usage('''Usage: %prog [options]''')
     p.add_option('--recheck', action='store_true',
                  help="""Recheck already downloaded packages for changes.""")
-    options, arguments = p.parse_args()
+    options, unused_arguments = p.parse_args()
     if reposadocommon.validPreferences():
         if not os.path.exists(reposadocommon.pref('CurlPath')):
             reposadocommon.print_stderr('ERROR: curl tool not found at %s',
