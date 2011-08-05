@@ -45,7 +45,8 @@ AppleCatalogURLs
 		<string>http://swscan.apple.com/content/catalogs/index.sucatalog</string>
 		<string>http://swscan.apple.com/content/catalogs/others/index-leopard.merged-1.sucatalog'</string>
 		<string>http://swscan.apple.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog'</string>
-	</array>
+                <string>http://swscan.apple.com/content/catalogs/others/index-lion-snowleopard-leopard.merged-1.sucatalog</string>	
+        </array>
 
 As of Reposado's release, this is the current set of available Apple Software Update catalogs.
 
