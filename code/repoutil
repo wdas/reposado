@@ -182,7 +182,15 @@ def list_products(sort_order='date', reverse_sort=False, list_of_keys=None):
         if sort_key == 'key':
             product_dict['sort_key'] = key
         else:
-            product_dict['sort_key'] = products[key][sort_key]
+            try:
+                product_dict['sort_key'] = products[key][sort_key]
+            except KeyError:
+                reposadocommon.print_stderr(
+                    'Product %s is missing the sort key %s!\n'
+                    'Product info database may be incomplete.\n'
+                    'Info for product:\n',
+                    key, products[key])
+                return
         product_list.append(product_dict)
     product_list.sort(sort_by_key)
     if reverse_sort:
@@ -218,8 +226,16 @@ def add_product_to_branch(parameters):
             reposadocommon.print_stderr(
                 'Product %s doesn\'t exist!', product_id)
         else:
-            title = products[product_id]['title']
-            vers = products[product_id]['version']
+            try:
+                title = products[product_id]['title']
+                vers = products[product_id]['version']
+            except KeyError:
+                reposadocommon.print_stderr(
+                    'Product %s is missing a title or version!\n'
+                    'Product info database may be incomplete.\n'
+                    'Info for product:\n%s',
+                    product_id, products[product_id])
+                return
             if product_id in catalog_branches[branch_name]:
                 reposadocommon.print_stderr(
                     '%s (%s-%s) is already in branch %s!', 
@@ -322,6 +338,7 @@ def new_branch(branchname):
 
 
 def configure():
+    '''Configures reposado preferences.'''
     reposadocommon.configure_prefs()
 
 
