@@ -43,8 +43,8 @@ AppleCatalogURLs
     <key>AppleCatalogURLs</key>
     <array>
         <string>http://swscan.apple.com/content/catalogs/index.sucatalog</string>
-        <string>http://swscan.apple.com/content/catalogs/others/index-leopard.merged-1.sucatalog'</string>
-        <string>http://swscan.apple.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog'</string>
+        <string>http://swscan.apple.com/content/catalogs/others/index-leopard.merged-1.sucatalog</string>
+        <string>http://swscan.apple.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog</string>
         <string>http://swscan.apple.com/content/catalogs/others/index-lion-snowleopard-leopard.merged-1.sucatalog</string>  
     </array>
 
