@@ -151,14 +151,15 @@ def list_branch(branchname, sort_order='date', reverse_sort=False):
 def list_deprecated(sort_order='date', reverse_sort=False):
     '''Find products that are no longer referenced in Apple\'s catalogs'''
     products = reposadocommon.getProductInfo()
-    list_of_keys = []
+    list_of_productids = []
     for product_key in products.keys():
         if products[product_key].get('AppleCatalogs', []) == []:
-            list_of_keys.append(product_key)
-    list_products(sort_order, reverse_sort, list_of_keys)
+            list_of_productids.append(product_key)
+    list_products(sort_order, reverse_sort, list_of_productids)
 
 
-def list_products(sort_order='date', reverse_sort=False, list_of_keys=None):
+def list_products(sort_order='date', reverse_sort=False,
+                  list_of_productids=None):
     '''Prints a list of Software Update products'''
 
     def sort_by_key(a, b):
@@ -167,20 +168,20 @@ def list_products(sort_order='date', reverse_sort=False, list_of_keys=None):
 
     sort_keys = {'date': 'PostDate',
                  'title': 'title',
-                 'id':    'key'}
+                 'id':    'id'}
                  
     sort_key = sort_keys.get(sort_order, 'date')
         
     products = reposadocommon.getProductInfo()
     catalog_branches = reposadocommon.getCatalogBranches()
     product_list = []
-    if list_of_keys == None:
-        list_of_keys = products.keys()
-    for key in list_of_keys:
+    if list_of_productids == None:
+        list_of_productids = products.keys()
+    for productid in list_of_productids:
         product_dict = {}
-        product_dict['key'] = key
-        if sort_key == 'key':
-            product_dict['sort_key'] = key
+        product_dict['key'] = productid
+        if sort_key == 'id':
+            product_dict['sort_key'] = productid
         else:
             try:
                 product_dict['sort_key'] = products[key][sort_key]
@@ -189,7 +190,7 @@ def list_products(sort_order='date', reverse_sort=False, list_of_keys=None):
                     'Product %s is missing the sort key %s!\n'
                     'Product info database may be incomplete.\n'
                     'Info for product:\n%s',
-                    key, sort_key, products[key])
+                    key, sort_key, products.get(key))
                 return
         product_list.append(product_dict)
     product_list.sort(sort_by_key)
