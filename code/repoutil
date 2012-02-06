@@ -188,8 +188,8 @@ def list_products(sort_order='date', reverse_sort=False, list_of_keys=None):
                 reposadocommon.print_stderr(
                     'Product %s is missing the sort key %s!\n'
                     'Product info database may be incomplete.\n'
-                    'Info for product:\n',
-                    key, products[key])
+                    'Info for product:\n%s',
+                    key, sort_key, products[key])
                 return
         product_list.append(product_dict)
     product_list.sort(sort_by_key)
