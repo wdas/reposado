@@ -279,11 +279,14 @@ def remove_product_from_branch(parameters):
         return
     products = reposadocommon.getProductInfo()
     for product_id in product_id_list:
-        if not product_id in products:
+        if product_id in products:
+            title = products[product_id]['title']
+            vers = products[product_id]['version']
+        else:
             reposadocommon.print_stderr(
                 'Product %s doesn\'t exist!', product_id)
-        title = products[product_id]['title']
-        vers = products[product_id]['version']
+            title = 'UNKNOWN'
+            vers = 'UNKNOWN'
         if not product_id in catalog_branches[branch_name]:
             reposadocommon.print_stderr('%s (%s-%s) is not in branch %s!', 
                                     product_id, title, vers, branch_name)
