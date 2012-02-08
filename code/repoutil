@@ -122,7 +122,7 @@ def get_info(key):
             for catalog in product['AppleCatalogs']:
                 reposadocommon.print_stdout('           %s', catalog)
         else:
-            print '           Product is deprecated.'
+            reposadocommon.print_stdout('           Product is deprecated.')
             if product.get('OriginalAppleCatalogs'):
                 reposadocommon.print_stdout('OriginalAppleCatalogs:')
                 for catalog in product['OriginalAppleCatalogs']:
@@ -169,12 +169,16 @@ def print_product_line(key, products, catalog_branches=None):
         deprecation_state = ''
         if products[key].get('AppleCatalogs', []) == []:
             deprecation_state = '(Deprecated)'
+        try:
+            post_date = products[key].get('PostDate').strftime('%Y-%m-%d')
+        else:
+            post_date = 'None'
         reposadocommon.print_stdout(
             '%-15s %-50s %-10s %-10s %s %s',
             key, 
-            products[key]['title'], 
-            products[key]['version'],
-            products[key]['PostDate'].strftime('%Y-%m-%d'),
+            products[key].get('title'), 
+            products[key].get('version'),
+            post_date,
             branchlist, 
             deprecation_state)
             
@@ -220,7 +224,7 @@ def list_products(sort_order='date', reverse_sort=False,
             errormessages.append(
                 'Skipped product %s because it does not exist '
                 'in the ProductInfo database.' % productid)
-            break
+            continue
         product_dict = {}
         product_dict['key'] = productid
         if sort_key == 'id':
@@ -233,7 +237,7 @@ def list_products(sort_order='date', reverse_sort=False,
                     'Product %s is missing the sort key %s -- '
                     'Product info database may be incomplete'
                     % (productid, sort_key))
-                break
+                continue
         product_list.append(product_dict)
     product_list.sort(sort_by_key)
     if reverse_sort:
