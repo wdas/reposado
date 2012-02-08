@@ -43,6 +43,7 @@ import calendar
 import os
 import optparse
 import plistlib
+import shutil
 import subprocess
 #import sys
 import time
