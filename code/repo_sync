@@ -502,7 +502,17 @@ def getPreferredLocalization(list_of_localizations):
     elif 'en' in list_of_localizations:
         return 'en'
     return None
-    
+
+
+def cleanUpTmpDir():
+    """Cleans up our temporary directory."""
+    if TMPDIR:
+        try:
+            shutil.rmtree(TMPDIR)
+        except (OSError, IOError):
+            pass
+        tmpdir = None
+
 
 TMPDIR = None
 def sync(fast_scan=False, download_packages=True):
@@ -627,8 +637,7 @@ def sync(fast_scan=False, download_packages=True):
         reposadocommon.writeLocalCatalogs(localcatalogpath)
         
     # clean up tmpdir
-    # TO-DO: write the cleanup function
-    # cleanup(TMPDIR)
+    cleanUpTmpDir()
 
 
 def main():
