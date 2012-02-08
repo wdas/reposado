@@ -171,7 +171,7 @@ def print_product_line(key, products, catalog_branches=None):
             deprecation_state = '(Deprecated)'
         try:
             post_date = products[key].get('PostDate').strftime('%Y-%m-%d')
-        else:
+        except Exception:
             post_date = 'None'
         reposadocommon.print_stdout(
             '%-15s %-50s %-10s %-10s %s %s',
