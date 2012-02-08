@@ -299,6 +299,7 @@ def rewriteURLs(catalog):
 
 def writeAllBranchCatalogs():
     '''Writes out all branch catalogs. Used when we edit branches.'''
+    print_stdout('Rebuilding all branch catalogs...')
     for catalog_URL in pref('AppleCatalogURLs'):
         localcatalogpath = getLocalPathNameFromURL(catalog_URL)
         writeBranchCatalogs(localcatalogpath)
@@ -365,6 +366,14 @@ def writeBranchCatalogs(localcatalogpath):
 
         branchcatalogpath = localcatalogpath + '_' + branch + '.sucatalog'
         plistlib.writePlist(catalog, branchcatalogpath)
+
+
+def writeAllLocalCatalogs():
+    '''Writes out all local and branch catalogs. Used when we purge products.'''
+    print_stdout('Rebuilding all local catalogs...')
+    for catalog_URL in pref('AppleCatalogURLs'):
+        localcatalogpath = getLocalPathNameFromURL(catalog_URL)
+        writeLocalCatalogs(localcatalogpath)
 
 
 def writeLocalCatalogs(applecatalogpath):

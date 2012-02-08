@@ -38,7 +38,7 @@ Apple Software Update server'''
 
 import optparse
 import os
-#import sys
+import shutil
 
 from reposadolib import reposadocommon
 
@@ -99,10 +99,8 @@ def get_info(key):
         else:
             status = "Not downloaded"
         catalog_branches = reposadocommon.getCatalogBranches()
-        branchlist = []
-        for branch in catalog_branches.keys():
-            if key in catalog_branches[branch]:
-                branchlist.append(branch)
+        branchlist = [branch for branch in catalog_branches.keys()
+                      if key in catalog_branches[branch]]
         
         reposadocommon.print_stdout('Product:   %s', key)
         reposadocommon.print_stdout('Title:     %s', product.get('title'))
@@ -162,12 +160,11 @@ def print_product_line(key, products, catalog_branches=None):
         if not catalog_branches:
             branchlist = ''
         else:
-            branchlist = []
-            for branch in catalog_branches.keys():
-                if key in catalog_branches[branch]:
-                    branchlist.append(branch)
+            branchlist = [branch for branch in catalog_branches.keys()
+                          if key in catalog_branches[branch]]
         deprecation_state = ''
-        if products[key].get('AppleCatalogs', []) == []:
+        if not products[key].get('AppleCatalogs'):
+            # not in any Apple catalogs
             deprecation_state = '(Deprecated)'
         try:
             post_date = products[key].get('PostDate').strftime('%Y-%m-%d')
@@ -181,6 +178,8 @@ def print_product_line(key, products, catalog_branches=None):
             post_date,
             branchlist, 
             deprecation_state)
+    else:
+        reposadocommon.print_stdout('%-15s <MISSING INFO>', key)
             
             
 def list_branch(branchname, sort_order='date', reverse_sort=False):
@@ -193,10 +192,8 @@ def list_branch(branchname, sort_order='date', reverse_sort=False):
 def list_deprecated(sort_order='date', reverse_sort=False):
     '''Find products that are no longer referenced in Apple\'s catalogs'''
     products = reposadocommon.getProductInfo()
-    list_of_productids = []
-    for product_key in products.keys():
-        if products[product_key].get('AppleCatalogs', []) == []:
-            list_of_productids.append(product_key)
+    list_of_productids = [key for key in products.keys()
+                          if not products[key].get('AppleCatalogs')]
     list_products(sort_order, reverse_sort, list_of_productids)
 
 
@@ -208,7 +205,7 @@ def list_products(sort_order='date', reverse_sort=False,
         """Internal comparison function for use with sorting"""
         return cmp(a['sort_key'], b['sort_key'])
 
-    sort_keys = {'date': 'PostDate',
+    sort_keys = {'date':  'PostDate',
                  'title': 'title',
                  'id':    'id'}
                  
@@ -322,8 +319,8 @@ def remove_product_from_branch(parameters):
     products = reposadocommon.getProductInfo()
     for product_id in product_id_list:
         if product_id in products:
-            title = products[product_id]['title']
-            vers = products[product_id]['version']
+            title = products[product_id].get('title')
+            vers = products[product_id].get('version')
         else:
             reposadocommon.print_stderr(
                 'Product %s doesn\'t exist!', product_id)
@@ -332,12 +329,83 @@ def remove_product_from_branch(parameters):
         if not product_id in catalog_branches[branch_name]:
             reposadocommon.print_stderr('%s (%s-%s) is not in branch %s!', 
                                     product_id, title, vers, branch_name)
+            continue
 
         reposadocommon.print_stdout('Removing %s (%s-%s) from branch %s...', 
             product_id, title, vers, branch_name)
         catalog_branches[branch_name].remove(product_id)
     reposadocommon.writeCatalogBranches(catalog_branches)
     reposadocommon.writeAllBranchCatalogs()
+
+
+def purge_product(product_ids, force=False):
+    '''Removes products from the ProductInfo.plist and purges their local 
+    replicas (if they exist). Warns and skips if a product is not deprecated
+    or is in any branch, unless force == True. If force == True, product is 
+    also removed from all branches. This action is destructive and cannot be
+    undone.
+    product_ids is a list of productids.'''
+    
+    products = reposadocommon.getProductInfo()
+    catalog_branches = reposadocommon.getCatalogBranches()
+    downloaded_product_list = reposadocommon.getDownloadStatus()
+    
+    for product_id in product_ids:
+        if not product_id in products:
+            reposadocommon.print_stderr(
+                'Product %s does not exist in the ProductInfo database. '
+                'Skipping.', product_id)
+            continue
+        product = products[product_id]
+        product_short_info = ('%s (%s-%s)' 
+            % (product_id, product.get('title'), product.get('version')))
+        if product.get('AppleCatalogs') and not force:
+            reposadocommon.print_stderr(
+                'WARNING: Product %s is in Apple catalogs:\n   %s',
+                product_short_info, '\n   '.join(product['AppleCatalogs']))
+            reposadocommon.print_stderr('Skipping product %s', product_id)
+            continue
+        branches_with_product = [branch for branch in catalog_branches.keys()
+                                 if product_id in catalog_branches[branch]]
+        if branches_with_product:
+            if not force:
+                reposadocommon.print_stderr(
+                    'WARNING: Product %s is in catalog branches:\n    %s',
+                    product_short_info, '\n    '.join(branches_with_product))
+                reposadocommon.print_stderr('Skipping product %s', product_id)
+                continue
+            else:
+                # remove product from all branches
+                for branch_name in branches_with_product:
+                    reposadocommon.print_stdout(
+                        'Removing %s from branch %s...', 
+                        product_short_info, branch_name)
+                    catalog_branches[branch_name].remove(product_id)
+                
+        local_copy = getProductLocation(product, product_id)
+        if local_copy:
+            # remove local replica
+            reposadocommon.print_stdout(
+                'Removing replicated %s from %s...', 
+                product_short_info, local_copy)
+            try:
+                shutil.rmtree(local_copy)
+            except (OSError, IOError), err:
+                reposadocommon.print_stderr(
+                    'Error: %s', err)
+                # but not fatal, so keep going...
+        # delete product from ProductInfo database
+        del products[product_id]
+        # delete product from downloaded product list
+        if product_id in downloaded_product_list:
+            downloaded_product_list.remove(product_id)
+        
+    # write out changed catalog branches, productInfo,
+    # and rebuild our local and branch catalogs
+    reposadocommon.writeDownloadStatus(downloaded_product_list)
+    reposadocommon.writeCatalogBranches(catalog_branches)
+    reposadocommon.writeProductInfo(products)
+    reposadocommon.writeAllLocalCatalogs()
 
 
 def copy_branches(source_branch, dest_branch):
@@ -445,6 +513,13 @@ def main():
                     metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
                     help='''Remove one or more PRODUCT_IDs from catalog branch
                     BRANCH_NAME.''')
+    p.add_option('--purge-product',
+                    metavar='PRODUCT_ID [PRODUCT_ID ...] [--force]',
+                    help='''Purge one or more PRODUCT_IDs from product
+                    database and remove any locally replicated version.''')
+    p.add_option('--force', action='store_true',
+                    help="""Force purge of product. Must be used with
+                    --purge-product option.""")
     
     options, arguments  = p.parse_args()
     
@@ -478,6 +553,11 @@ def main():
         params = list(options.remove_product)
         params.extend(arguments)
         remove_product_from_branch(params)
+    if options.purge_product:
+        product_ids = [options.purge_product]
+        product_ids.extend(arguments)
+        purge_product(product_ids, force=options.force)
+        
 
 if __name__ == '__main__':
     main()
