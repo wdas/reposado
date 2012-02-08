@@ -53,12 +53,46 @@ def deleteBranchCatalogs(branchname):
         branchcatalogpath = localcatalogpath + '_' + branchname + '.sucatalog'
         if os.path.exists(branchcatalogpath):
             os.remove(branchcatalogpath)
+            
+            
+def getProductLocation(product, product_id):
+    '''Returns local path to replicated product
+    We pass in the product dictionary to avoid calling
+    reposadocommon.getProductInfo(), which is slow.'''
+    if not reposadocommon.pref('LocalCatalogURLBase'):
+        # we're not replicating products
+        return None
+    if not 'CatalogEntry' in product:
+        # something is wrong with the product entry
+        return None
+    catalog_entry = product['CatalogEntry']
+    product_url = None
+    if 'ServerMetadataURL' in catalog_entry:
+        product_url = catalog_entry['ServerMetadataURL']
+    else:
+        try:
+            # get the URL for the first package in the Packages array
+            product_url = catalog_entry['Packages'][0]['URL']
+        except (KeyError, IndexError):
+            return None
+    filepath = reposadocommon.getLocalPathNameFromURL(product_url)
+    # now back out to product_id dir and return the path
+    while True:
+        if filepath.endswith(product_id):
+            return filepath
+        else:
+            # discard last element of path
+            filepath = os.path.dirname(filepath)
+        if filepath == '/':
+            # didn't find it
+            return None
 
 
 def get_info(key):
     '''Prints detail for a specific product'''
     products = reposadocommon.getProductInfo()
     if key in products:
+        product = products[key]
         downloaded_products_list = reposadocommon.getDownloadStatus()
         if key in downloaded_products_list:
             status = "Downloaded"
@@ -71,23 +105,27 @@ def get_info(key):
                 branchlist.append(branch)
         
         reposadocommon.print_stdout('Product:   %s', key)
-        reposadocommon.print_stdout('Title:     %s', products[key]['title'])
-        reposadocommon.print_stdout('Version:   %s', products[key]['version'])
+        reposadocommon.print_stdout('Title:     %s', product.get('title'))
+        reposadocommon.print_stdout('Version:   %s', product.get('version'))
         reposadocommon.print_stdout('Size:      %s',
-            humanReadable(products[key]['size']))
+            humanReadable(product.get('size', 0)))
         reposadocommon.print_stdout(
-            'Post Date: %s', products[key]['PostDate'])
+            'Post Date: %s', product.get('PostDate'))
         if reposadocommon.pref('LocalCatalogURLBase'):
+            # we're replicating products locally
             reposadocommon.print_stdout('Status:    %s', status)
+            if status == 'Downloaded':
+                reposadocommon.print_stdout(
+                    'Location:  %s' % getProductLocation(product, key))
         if products[key].get('AppleCatalogs'):
             reposadocommon.print_stdout('AppleCatalogs:')
-            for catalog in products[key]['AppleCatalogs']:
+            for catalog in product['AppleCatalogs']:
                 reposadocommon.print_stdout('           %s', catalog)
         else:
             print '           Product is deprecated.'
-            if products[key].get('OriginalAppleCatalogs'):
+            if product.get('OriginalAppleCatalogs'):
                 reposadocommon.print_stdout('OriginalAppleCatalogs:')
-                for catalog in products[key]['OriginalAppleCatalogs']:
+                for catalog in product['OriginalAppleCatalogs']:
                     reposadocommon.print_stdout('           %s', catalog)
         reposadocommon.print_stdout('Branches:')
         if branchlist:
@@ -96,7 +134,7 @@ def get_info(key):
         else:
             reposadocommon.print_stdout('           <None>')
         reposadocommon.print_stdout('HTML Description:')
-        reposadocommon.print_stdout(products[key]['description'])
+        reposadocommon.print_stdout(product.get('description'))
     else:
         reposadocommon.print_stdout('No product id %s found.', key)
 
