@@ -397,8 +397,9 @@ def writeBranchCatalogs(localcatalogpath):
 def writeAllLocalCatalogs():
     '''Writes out all local and branch catalogs. Used when we purge products.'''
     for catalog_URL in pref('AppleCatalogURLs'):
-        localcatalogpath = getLocalPathNameFromURL(catalog_URL)
-        writeLocalCatalogs(localcatalogpath)
+        localcatalogpath = getLocalPathNameFromURL(catalog_URL) + '.apple'
+        if os.path.exists(localcatalogpath):
+            writeLocalCatalogs(localcatalogpath)
 
 
 def writeLocalCatalogs(applecatalogpath):
