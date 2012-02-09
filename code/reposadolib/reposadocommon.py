@@ -43,6 +43,7 @@ import sys
 import os
 import imp
 import plistlib
+import time
 import urlparse
 import warnings
 from xml.parsers.expat import ExpatError
@@ -166,19 +167,44 @@ def concat_message(msg, *args):
     return msg
 
 
+def log(msg):
+    """Generic logging function"""
+    # date/time format string
+    if not LOGFILE:
+        return
+    formatstr = '%b %d %H:%M:%S'
+    try:
+        fileobj = open(LOGFILE, mode='a', buffering=1)
+        try:
+            print >> fileobj, time.strftime(formatstr), msg.encode('UTF-8')
+        except (OSError, IOError):
+            pass
+        fileobj.close()
+    except (OSError, IOError):
+        pass
+
+
 def print_stdout(msg, *args):
     """
     Prints message and args to stdout.
     """
-    print concat_message(msg, *args)
-    sys.stdout.flush()
+    output = concat_message(msg, *args)
+    if LOGFILE:
+        log(output)
+    else:
+        print output
+        sys.stdout.flush()
 
 
 def print_stderr(msg, *args):
     """
     Prints message and args to stderr.
     """
-    print >> sys.stderr, concat_message(msg, *args)
+    output = concat_message(msg, *args)
+    if LOGFILE:
+        log(output)
+    else:
+        print >> sys.stderr, concat_message(msg, *args)
 
 
 def writeDataToPlist(data, filename):
@@ -299,7 +325,6 @@ def rewriteURLs(catalog):
 
 def writeAllBranchCatalogs():
     '''Writes out all branch catalogs. Used when we edit branches.'''
-    print_stdout('Rebuilding all branch catalogs...')
     for catalog_URL in pref('AppleCatalogURLs'):
         localcatalogpath = getLocalPathNameFromURL(catalog_URL)
         writeBranchCatalogs(localcatalogpath)
@@ -320,6 +345,8 @@ def writeBranchCatalogs(localcatalogpath):
     # now write filtered catalogs (branches)
     catalog_branches = getCatalogBranches()
     for branch in catalog_branches.keys():
+        branchcatalogpath = localcatalogpath + '_' + branch + '.sucatalog'
+        print_stdout('Building %s...' % os.path.basename(branchcatalogpath))
         catalog['Products'] = {}
         for product_key in catalog_branches[branch]:
             if product_key in downloaded_products.keys():
@@ -364,13 +391,11 @@ def writeBranchCatalogs(localcatalogpath):
                         'It is not in the corresponding Apple catalog.',
                         product_key, branch, localcatalogname)
 
-        branchcatalogpath = localcatalogpath + '_' + branch + '.sucatalog'
         plistlib.writePlist(catalog, branchcatalogpath)
 
 
 def writeAllLocalCatalogs():
     '''Writes out all local and branch catalogs. Used when we purge products.'''
-    print_stdout('Rebuilding all local catalogs...')
     for catalog_URL in pref('AppleCatalogURLs'):
         localcatalogpath = getLocalPathNameFromURL(catalog_URL)
         writeLocalCatalogs(localcatalogpath)
@@ -387,7 +412,8 @@ def writeLocalCatalogs(applecatalogpath):
         localcatalogpath = applecatalogpath[0:-6]
     else:
         localcatalogpath = applecatalogpath
-
+    
+    print_stdout('Building %s...' % os.path.basename(localcatalogpath))
     downloaded_products_list = getDownloadStatus()
 
     downloaded_products = {}
@@ -410,7 +436,7 @@ def writeLocalCatalogs(applecatalogpath):
     # now write filtered catalogs (branches) based on this catalog
     writeBranchCatalogs(localcatalogpath)
 
-
+LOGFILE = None
 def main():
     '''Placeholder'''
     pass

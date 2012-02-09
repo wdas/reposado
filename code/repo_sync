@@ -520,7 +520,9 @@ def sync(fast_scan=False, download_packages=True):
     Returns a dictionary of products.'''
     global TMPDIR
     TMPDIR = tempfile.mkdtemp()
-    
+    if reposadocommon.LOGFILE:
+        print 'Output logged to %s' % reposadocommon.LOGFILE
+    reposadocommon.print_stdout('repo_sync run started')
     catalog_urls = reposadocommon.pref('AppleCatalogURLs')
     products = reposadocommon.getProductInfo()
     
@@ -638,7 +640,8 @@ def sync(fast_scan=False, download_packages=True):
         
     # clean up tmpdir
     cleanUpTmpDir()
-
+    reposadocommon.print_stdout('repo_sync run ended')
+    
 
 def main():
     '''Main command processing'''
@@ -646,6 +649,8 @@ def main():
     p.set_usage('''Usage: %prog [options]''')
     p.add_option('--recheck', action='store_true',
                  help="""Recheck already downloaded packages for changes.""")
+    p.add_option('--log', dest='logfile', metavar='LOGFILE',
+                 help="""Log all output to LOGFILE. No output to STDOUT.""")
     options, unused_arguments = p.parse_args()
     if reposadocommon.validPreferences():
         if not os.path.exists(reposadocommon.pref('CurlPath')):
@@ -656,6 +661,11 @@ def main():
             download_packages = False
         else:
             download_packages = True
+        if options.logfile:
+            reposadocommon.LOGFILE = options.logfile
+        elif reposadocommon.pref('RepoSyncLogFile'):
+            reposadocommon.LOGFILE = reposadocommon.pref('RepoSyncLogFile')
+            
         sync(fast_scan=(not options.recheck), 
              download_packages=download_packages)
 

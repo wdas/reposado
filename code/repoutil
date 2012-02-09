@@ -253,10 +253,14 @@ def add_product_to_branch(parameters):
     for item in parameters:
         if item.startswith('-'):
             reposadocommon.print_stderr('Ambiguous parameters: can\'t tell if  '
-                                     '%s is a parameter or option!', item)
+                                     '%s is a parameter or an option!', item)
             return
     branch_name = parameters[-1]
     product_id_list = parameters[0:-1]
+    
+    # remove all duplicate product ids
+    product_id_list = list(set(product_id_list))
+    
     catalog_branches = reposadocommon.getCatalogBranches()
     if not branch_name in catalog_branches:
         reposadocommon.print_stderr('Catalog branch %s doesn\'t exist!',
@@ -306,11 +310,15 @@ def remove_product_from_branch(parameters):
         if item.startswith('-'):
             reposadocommon.print_stderr(
                 'Ambiguous parameters: can\'t tell if  '
-                '%s is a parameter or option!', item)
+                '%s is a parameter or an option!', item)
             return
             
     branch_name = parameters[-1]
     product_id_list = parameters[0:-1]
+    
+    # remove all duplicate product ids
+    product_id_list = list(set(product_id_list))
+    
     catalog_branches = reposadocommon.getCatalogBranches()
     if not branch_name in catalog_branches:
         reposadocommon.print_stderr(
@@ -346,9 +354,25 @@ def purge_product(product_ids, force=False):
     undone.
     product_ids is a list of productids.'''
     
+    # sanity checking
+    for item in product_ids:
+        if item.startswith('-'):
+            reposadocommon.print_stderr('Ambiguous parameters: can\'t tell if  '
+                                     '%s is a parameter or an option!', item)
+            return
+    
     products = reposadocommon.getProductInfo()
     catalog_branches = reposadocommon.getCatalogBranches()
     downloaded_product_list = reposadocommon.getDownloadStatus()
+    
+    if 'all-deprecated' in product_ids:
+        product_ids.remove('all-deprecated')
+        deprecated_productids = [key for key in products.keys()
+                                 if not products[key].get('AppleCatalogs')]
+        product_ids.extend(deprecated_productids)
+        
+    # remove all duplicate product ids
+    product_ids = list(set(product_ids))
     
     for product_id in product_ids:
         if not product_id in products:
