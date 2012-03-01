@@ -88,7 +88,7 @@ def getProductLocation(product, product_id):
             return None
 
 
-def get_info(key):
+def print_info(key):
     '''Prints detail for a specific product'''
     products = reposadocommon.getProductInfo()
     if key in products:
@@ -136,23 +136,32 @@ def get_info(key):
     else:
         reposadocommon.print_stdout('No product id %s found.', key)
 
-def get_dist(key):
-	'''Print the .dist file for a specific product for every language in PreferredLocalizations'''
-	products = reposadocommon.getProductInfo()
-	languages = reposadocommon.pref('PreferredLocalizations')
-	if key in products:
-		if products[key].get('CatalogEntry'):
-			if products[key]['CatalogEntry'].get('Distributions'):
-				for lang in languages:
-					if products[key]['CatalogEntry']['Distributions'].get(lang):
-						distPath = reposadocommon.getLocalPathNameFromURL(products[key]['CatalogEntry']['Distributions'][lang])
-						distFd = open(distPath, 'r')
-						distContents = distFd.read()
-						reposadocommon.print_stdout(distContents)
-						distFd.close()
-	else:
-		reposadocommon.print_stdout('No product id %s found.', key)
-		
+
+def print_dist(key):
+    '''Print the .dist file for a specific product for every language in
+    PreferredLocalizations'''
+    products = reposadocommon.getProductInfo()
+    languages = reposadocommon.pref('PreferredLocalizations')
+    if key in products:
+        if products[key].get('CatalogEntry'):
+            if products[key]['CatalogEntry'].get('Distributions'):
+                for lang in languages:
+                    if products[key]['CatalogEntry']['Distributions'].get(lang):
+                        distPath = reposadocommon.getLocalPathNameFromURL(
+                          products[key]['CatalogEntry']['Distributions'][lang])
+                        try:
+                            distFd = open(distPath, 'r')
+                            distContents = distFd.read()
+                            distFd.close()
+                            reposadocommon.print_stdout(distContents)
+                        except OSErr, errorMsg:
+                            reposadocommon.print_stderr(
+                                'Error getting %s dist file for product %s:\n%s'
+                                % (lang, key, errorMsg))
+    else:
+        reposadocommon.print_stdout('No product id %s found.', key)
+
+
 def list_branches():
     '''Prints catalog branch names'''
     catalog_branches = reposadocommon.getCatalogBranches()
@@ -544,19 +553,21 @@ def main():
                     help="""Print info on a specific update.""")
     p.add_option('--product-dist', '--dist', metavar='PRODUCT_ID',
                     dest='dist',
-                    help="""Print the contents of the .dist file for a specific update.""")
-    p.add_option('--add-product', '--add-update', '--add',
+                    help="""Print the contents of the .dist file for a specific
+                    update.""")
+    p.add_option('--add-product', '--add-products',
+                 '--add-update', '--add-updates', '--add',
                     dest='add_product', nargs=2,
                     metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
                     help='''Add one or more PRODUCT_IDs to catalog branch
                     BRANCH_NAME.  --add_product all BRANCH_NAME will add
                     all cached products, including deprecated products, to
                     catalog BRANCH_NAME.''')
-    p.add_option('--remove-product', nargs=2,
+    p.add_option('--remove-product', '--remove-products', nargs=2,
                     metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
                     help='''Remove one or more PRODUCT_IDs from catalog branch
                     BRANCH_NAME.''')
-    p.add_option('--purge-product',
+    p.add_option('--purge-product', '--purge-products',
                     metavar='PRODUCT_ID [PRODUCT_ID ...] [--force]',
                     help='''Purge one or more PRODUCT_IDs from product
                     database and remove any locally replicated version.''')
@@ -566,9 +577,6 @@ def main():
     
     options, arguments  = p.parse_args()
     
-    #if options.sync:
-    #    pass
-    #    #sync(fast_scan=True)
     if options.configure:
         configure()
     if options.products:
@@ -581,9 +589,9 @@ def main():
     if options.list_branches:
         list_branches()
     if options.info:
-        get_info(options.info)
+        print_info(options.info)
     if options.dist:
-        get_dist(options.dist)
+        print_dist(options.dist)
     if options.new_branch:
         new_branch(options.new_branch)
     if options.copy_branch:
