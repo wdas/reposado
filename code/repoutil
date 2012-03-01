@@ -136,7 +136,23 @@ def get_info(key):
     else:
         reposadocommon.print_stdout('No product id %s found.', key)
 
-
+def get_dist(key):
+	'''Print the .dist file for a specific product for every language in PreferredLocalizations'''
+	products = reposadocommon.getProductInfo()
+	languages = reposadocommon.pref('PreferredLocalizations')
+	if key in products:
+		if products[key].get('CatalogEntry'):
+			if products[key]['CatalogEntry'].get('Distributions'):
+				for lang in languages:
+					if products[key]['CatalogEntry']['Distributions'].get(lang):
+						distPath = reposadocommon.getLocalPathNameFromURL(products[key]['CatalogEntry']['Distributions'][lang])
+						distFd = open(distPath, 'r')
+						distContents = distFd.read()
+						reposadocommon.print_stdout(distContents)
+						distFd.close()
+	else:
+		reposadocommon.print_stdout('No product id %s found.', key)
+		
 def list_branches():
     '''Prints catalog branch names'''
     catalog_branches = reposadocommon.getCatalogBranches()
@@ -526,6 +542,9 @@ def main():
     p.add_option('--product-info', '--info', metavar='PRODUCT_ID',
                     dest='info',
                     help="""Print info on a specific update.""")
+    p.add_option('--product-dist', '--dist', metavar='PRODUCT_ID',
+                    dest='dist',
+                    help="""Print the contents of the .dist file for a specific update.""")
     p.add_option('--add-product', '--add-update', '--add',
                     dest='add_product', nargs=2,
                     metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
@@ -563,6 +582,8 @@ def main():
         list_branches()
     if options.info:
         get_info(options.info)
+    if options.dist:
+        get_dist(options.dist)
     if options.new_branch:
         new_branch(options.new_branch)
     if options.copy_branch:
