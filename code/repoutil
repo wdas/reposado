@@ -177,8 +177,8 @@ def humanReadable(size_in_bytes):
             continue
         else:
             return str(round(size_in_bytes/float(limit/2**10), 1)) + suffix
-            
-            
+
+
 def print_product_line(key, products, catalog_branches=None):
     '''Prints a line of product info'''
     if key in products:
@@ -187,6 +187,7 @@ def print_product_line(key, products, catalog_branches=None):
         else:
             branchlist = [branch for branch in catalog_branches.keys()
                           if key in catalog_branches[branch]]
+            branchlist.sort()
         deprecation_state = ''
         if not products[key].get('AppleCatalogs'):
             # not in any Apple catalogs
@@ -205,15 +206,46 @@ def print_product_line(key, products, catalog_branches=None):
             deprecation_state)
     else:
         reposadocommon.print_stdout('%-15s <MISSING INFO>', key)
-            
-            
+
+
 def list_branch(branchname, sort_order='date', reverse_sort=False):
     '''List products in a given catalog branch'''
     catalog_branches = reposadocommon.getCatalogBranches()
     if branchname in catalog_branches:
         list_products(sort_order, reverse_sort, catalog_branches[branchname])
-        
-        
+    else:
+        reposadocommon.print_stderr(
+            'ERROR: %s is not a valid branch name.' % branchname)
+
+
+def diff_branches(branch_list):
+    '''Displays differences between two branches'''
+    catalog_branches = reposadocommon.getCatalogBranches()
+    for branch in branch_list:
+        if not branch in catalog_branches:
+            reposadocommon.print_stderr(
+                'ERROR: %s is not a valid branch name.' % branch)
+            return
+    branch1 = set(catalog_branches[branch_list[0]])
+    branch2 = set(catalog_branches[branch_list[1]])
+    unique_to_first = branch1 - branch2
+    unique_to_second = branch2 - branch1
+    if len(unique_to_first) == 0  and len(unique_to_second) == 0:
+        reposadocommon.print_stdout(
+            'No differences between %s and %s.' % branch_list)
+    else:
+        reposadocommon.print_stdout('Unique to \'%s\':', branch_list[0])
+        if len(unique_to_first):
+            list_products(list_of_productids=unique_to_first)
+        else:
+            reposadocommon.print_stdout('<none>')
+        reposadocommon.print_stdout('\nUnique to \'%s\':', branch_list[1])
+        if len(unique_to_second):
+            list_products(list_of_productids=unique_to_second)
+        else:
+            reposadocommon.print_stdout('<none>')
+
+
 def list_deprecated(sort_order='date', reverse_sort=False):
     '''Find products that are no longer referenced in Apple\'s catalogs'''
     products = reposadocommon.getProductInfo()
@@ -233,7 +265,7 @@ def list_products(sort_order='date', reverse_sort=False,
     sort_keys = {'date':  'PostDate',
                  'title': 'title',
                  'id':    'id'}
-                 
+
     sort_key = sort_keys.get(sort_order, 'PostDate')
     errormessages = []
     products = reposadocommon.getProductInfo()
@@ -548,6 +580,10 @@ def main():
                     dest='branch',
                     metavar='BRANCH_NAME',
                     help="""List updates in branch BRANCH_NAME""")
+    p.add_option('--diff', '--diff-branch', '--diff-branches', 
+                    dest='diff_branch', nargs=2,
+                    metavar='BRANCH1_NAME BRANCH2_NAME',
+                    help="""Display differences between two branches""")
     p.add_option('--product-info', '--info', metavar='PRODUCT_ID',
                     dest='info',
                     help="""Print info on a specific update.""")
@@ -598,6 +634,8 @@ def main():
         copy_branches(options.copy_branch[0], options.copy_branch[1])
     if options.delete_branch:
         delete_branch(options.delete_branch)
+    if options.diff_branch:
+        diff_branches(options.diff_branch)
     if options.add_product:
         params = list(options.add_product)
         params.extend(arguments)
