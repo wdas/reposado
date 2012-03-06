@@ -52,9 +52,11 @@ def deleteBranchCatalogs(branchname):
             localcatalogpath = localcatalogpath[0:-10]
         branchcatalogpath = localcatalogpath + '_' + branchname + '.sucatalog'
         if os.path.exists(branchcatalogpath):
+            reposadocommon.print_stdout(
+                'Removing %s', os.path.basename(branchcatalogpath))
             os.remove(branchcatalogpath)
-            
-            
+
+
 def getProductLocation(product, product_id):
     '''Returns local path to replicated product
     We pass in the product dictionary to avoid calling
