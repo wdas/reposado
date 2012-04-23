@@ -25,3 +25,7 @@ If you configure Reposado to also download the actual updates as well as the cat
 Apple's Software Update Service does a few things. Primarily, it replicates software updates from Apple's servers, downloading them to a local machine. Secondly, it functions as a web server to actually serve these updates to client machines. Reposado does not duplicate the web server portion of Apple's Software Update Service. Instead you may use any existing web server you wish.
 
 Reposado also currently relies on the command-line "curl" binary to download updates from Apple's servers. curl is available on OS X, RedHat Linux, and many other OSes, including Win32 and Win64 versions. See [http://curl.haxx.se](http://curl.haxx.se) for more information.
+
+**MORE INFO**
+
+More information and basic documentation is available here: https://github.com/wdas/reposado/tree/master/docs

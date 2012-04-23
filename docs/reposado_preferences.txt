@@ -74,7 +74,7 @@ RepoSyncLogFile
     Path to a log file for repo_sync output.
     
     Example:
-    <key<RepoSyncLogFile</key>
+    <key>RepoSyncLogFile</key>
     <string>/var/log/reposado_sync.log</string>
     
     Defaults to no log file.
