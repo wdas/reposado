@@ -9,19 +9,22 @@ You'll almost certainly want to run the repo_sync tool periodically to download 
 If all you want or need is a local replica of Apple's Software Updates in order to conserve your organization's Internet bandwidth usage, you need not do anything other than the tasks of the initial configuration and setting up periodic execution of the sync script. If you'd like to be able to manage which updates are made available to your client machines, the repoutil tool provides the means to do so.
 
 CatalogURLs
-
-By default, Reposado replicates three update catalogs from Apple's servers:
+-----------
+By default, Reposado replicates these update catalogs from Apple's servers:
 
 http://swscan.apple.com/content/catalogs/index.sucatalog
+http://swscan.apple.com/content/catalogs/index-1.sucatalog
 http://swscan.apple.com/content/catalogs/others/index-leopard.merged-1.sucatalog
 http://swscan.apple.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog
+http://swscan.apple.com/content/catalogs/others/index-lion-snowleopard-leopard.merged-1.sucatalog
+http://swscan.apple.com/content/catalogs/others/index-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog
 
-These are the update catalogs for Tiger, Leopard, and Snow Leopard clients, respectively. You may point any or all of your client machines to the replicated versions of these catalogs. The clients will get the latest updates from Apple as soon as they've been replicated to your Reposado server.
+These are the update catalogs for Tiger, Leopard, and Snow Leopard, Lion and Mountain Lion clients, respectively. You may point any or all of your client machines to the replicated versions of these catalogs. The clients will get the latest updates from Apple as soon as they've been replicated to your Reposado server.
 
 If you'd like to control the availability of updates, you must create "branch" catalogs, which contain subsets of the available updates. You then point some or all of your clients to these branch catalogs instead of the "raw" catalogs that come from Apple.
 
 Creating branch catalogs
-
+------------------------
 Start by creating an empty branch:
 
 repoutil --new-branch testing
@@ -35,7 +38,7 @@ http://su.myorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1_t
 ..but not until you've added something to the testing branch. 
 
 Adding products to a branch catalog
-
+-----------------------------------
 Get a list of products:
 
 repoutil --products
@@ -56,7 +59,7 @@ Adding zzzz041-0532 (iTunes-10.2.2) to branch testing...
 And now the testing catalogs are available at URLs similar to those listed above, and the testing catalogs offer only Safari and iTunes.
 
 Removing products from a branch catalog
-
+---------------------------------------
 You can remove products from branch catalogs:
 
 repoutil --remove-product zzzz041-0531 zzzz041-0532 testing
@@ -78,7 +81,7 @@ Really replace contents of branch release with branch testing? [y/n] y
 Copied contents of branch testing to branch release.
 
 One possible branch catalog workflow
-
+------------------------------------
 A very small number of your machines are configured to use the "raw" catalogs from Apple. As new updates are released, after a short delay (a day or so?) you add them to the "testing" branch. Your "testing" group of machines are configured to use the "testing" CatalogURLs for their updates. After a time of testing to make sure there are no issues, you add new updates to the "release" branch. Most machines in your organization are configured to use the "release" CatalogURLs.
 
 In this way, new updates are tested before being released to the majority of your machines.
@@ -86,7 +89,7 @@ In this way, new updates are tested before being released to the majority of you
 Another use for branch catalogs: if you had a set of machines that must remain on a specific OS release for compatibility with a specific application, you could create one or more special branch catalogs that contained no Mac OS X updates, but only updates to Safari, iTunes, the iLife and iWork apps. In this way you could update the other applications while leaving the OS itself at a specific version.
 
 Deprecated products
-
+-------------------
 Items from Apple's Software Update service can become "deprecated". This commonly occurs when a newer version of an update is made available. For example, when Apple releases a new update to iTunes, all older iTunes updates are deprecated and no longer available from Apple's Software Update servers. Similarly, new updates for Mac OS X cause older updates to be deprecated.
 
 This behavior can sometimes present problems for system administrators. Let's say you had made the 10.6.6 update available to all the machines you manage, and some had updated and some had not yet. Apple then released the Mac OS X 10.6.7 update, which causes the 10.6.6 update to disappear from Apple's update servers. If you are not ready to move to Mac OS X 10.6.7 (because you need testing time), but some of your machines are still running 10.6.5 or earlier, if you are using Apple's Software Update Service there is no way to update those machines to 10.6.6 using Apple's tools.

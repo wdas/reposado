@@ -59,3 +59,14 @@ Branch CatalogURLs take the form of:
 
 http://su.yourorg.com/content/catalogs/others/index-lion-snowleopard-leopard.merged-1_<branchname>.sucatalog
 
+
+Mountain Lion Clients
+---------------------
+
+Mountain Lion clients should use a CatalogURL of the form:
+
+http://su.yourorg.com/content/catalogs/others/index-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog
+
+Branch CatalogURLs take the form of:
+
+http://su.yourorg.com/content/catalogs/others/index-mountainlion-lion-snowleopard-leopard.merged-1_<branchname>.sucatalog
