@@ -221,7 +221,7 @@ def writeDataToPlist(data, filename):
     try:
         plistlib.writePlist(data, 
             os.path.join(metadata_dir, filename))
-    except (IOError, OSError), errmsg:
+    except (IOError, OSError, TypeError), errmsg:
         print_stderr(
             'Could not write %s because %s', filename, errmsg)
         

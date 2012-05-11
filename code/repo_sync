@@ -611,7 +611,7 @@ def sync(fast_scan=False, download_packages=True):
                         dist = parseSUdist(preferred_dist)
                         products[product_key]['title'] = dist['title']
                         products[product_key]['version'] = dist['version']
-                        products[product_key]['size'] = size
+                        products[product_key]['size'] = str(size)
                         products[product_key]['description'] = \
                             dist['description']
                         products[product_key]['PostDate'] = \
