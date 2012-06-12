@@ -625,10 +625,24 @@ def sync(fast_scan=False, download_packages=True):
                     
                     # record original catalogs in case the product is
                     # deprecated in the future
-                    if not 'OriginalAppleCatalogs' in products[product_key]:
+                    #if not 'OriginalAppleCatalogs' in products[product_key]:
+                    #    products[product_key]['OriginalAppleCatalogs'] = \
+                    #        products[product_key]['AppleCatalogs']
+                    
+                    # If AppleCatalogs list is non-empty, record to 
+                    # OriginalAppleCatalogs in case the product is deprecated
+                    # in the future
+                    #
+                    # (This is a change from the original implementation to
+                    # account for products being mistakenly released for the
+                    # wrong sucatalogs and later corrected. The assumption now 
+                    # is that a change in available catalogs means Apple is 
+                    # fixing a mistake; disappearing from all catalogs means
+                    # an item is deprecated.)
+                    if products[product_key]['AppleCatalogs']:
                         products[product_key]['OriginalAppleCatalogs'] = \
                             products[product_key]['AppleCatalogs']
-        
+                            
         # record products we've successfully downloaded
         reposadocommon.writeDownloadStatus(replicated_products)
         # write our ETags to disk for future use
