@@ -215,7 +215,9 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
         print >> fileobj, 'fail'           # throw error if download fails
         print >> fileobj, 'dump-header -'  # dump headers to stdout
         print >> fileobj, 'speed-time = 30' # give up if too slow d/l
-        #print >> fileobj, 'output = "%s"' % tempdownloadpath # does not work on windows
+        # next line does not work on windows
+        #print >> fileobj, 'output = "%s"' % tempdownloadpath 
+        
         print >> fileobj, 'ciphers = HIGH,!ADH' # use only >=128 bit SSL
         print >> fileobj, 'url = "%s"' % url
         
@@ -249,7 +251,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
             '-q',                    # don't read .curlrc file
             '--config',              # use config file
             curldirectivepath,
-            '-o', tempdownloadpath]  # because output in config file doesn't work on windows
+            '-o', tempdownloadpath]
 
     proc = subprocess.Popen(cmd, shell=False, bufsize=1,
                             stdin=subprocess.PIPE,
@@ -506,12 +508,13 @@ def getPreferredLocalization(list_of_localizations):
 
 def cleanUpTmpDir():
     """Cleans up our temporary directory."""
+    global TMPDIR
     if TMPDIR:
         try:
             shutil.rmtree(TMPDIR)
         except (OSError, IOError):
             pass
-        tmpdir = None
+        TMPDIR = None
 
 
 TMPDIR = None
@@ -536,8 +539,13 @@ def sync(fast_scan=False, download_packages=True):
             reposadocommon.getLocalPathNameFromURL(catalog_url) + '.apple'
         if os.path.exists(localcatalogpath):
             archiveCatalog(localcatalogpath)
-        localcatalogpath = replicateURLtoFilesystem(catalog_url, 
-            appendToFilename='.apple')
+        try:
+            localcatalogpath = replicateURLtoFilesystem(catalog_url, 
+                appendToFilename='.apple')
+        except ReplicationError, err:
+            reposadocommon.print_stderr(
+                'Could not replicate %s: %s', catalog_url, err)
+            continue
         try:
             catalog = plistlib.readPlist(localcatalogpath)
         except (OSError, IOError, ExpatError), err:
@@ -565,24 +573,36 @@ def sync(fast_scan=False, download_packages=True):
                                 product['ServerMetadataURL'], 
                                 copy_only_if_missing=fast_scan)
                         except ReplicationError:
+                            reposadocommon.print_stderr(
+                                'Could not replicate %s: %s',
+                                product['ServerMetadataURL'], err)
                             continue
                     
                     if download_packages:
-                        try:
-                            for package in product.get('Packages', []):
-                                # TO-DO: Check 'Size' attribute and make sure
-                                # we have enough space on the target
-                                # filesystem before attempting to download
-                                if 'URL' in package:
+                        for package in product.get('Packages', []):
+                            # TO-DO: Check 'Size' attribute and make sure
+                            # we have enough space on the target
+                            # filesystem before attempting to download
+                            if 'URL' in package:
+                                try:
                                     unused_path = replicateURLtoFilesystem(
                                         package['URL'], 
                                         copy_only_if_missing=fast_scan)
-                                if 'MetadataURL' in package:
+                                except ReplicationError:
+                                    reposadocommon.print_stderr(
+                                        'Could not replicate %s: %s',
+                                        package['URL'], err)
+                                    continue
+                            if 'MetadataURL' in package:
+                                try:
                                     unused_path = replicateURLtoFilesystem(
                                         package['MetadataURL'], 
                                         copy_only_if_missing=fast_scan)
-                        except ReplicationError:
-                            continue
+                                except ReplicationError:
+                                    reposadocommon.print_stderr(
+                                        'Could not replicate %s: %s',
+                                        package['MetadataURL'], err)
+                                    continue
                             
                     # calculate total size
                     size = 0
