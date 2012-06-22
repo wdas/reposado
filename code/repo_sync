@@ -572,7 +572,7 @@ def sync(fast_scan=False, download_packages=True):
                             unused_path = replicateURLtoFilesystem(
                                 product['ServerMetadataURL'], 
                                 copy_only_if_missing=fast_scan)
-                        except ReplicationError:
+                        except ReplicationError, err:
                             reposadocommon.print_stderr(
                                 'Could not replicate %s: %s',
                                 product['ServerMetadataURL'], err)
@@ -588,7 +588,7 @@ def sync(fast_scan=False, download_packages=True):
                                     unused_path = replicateURLtoFilesystem(
                                         package['URL'], 
                                         copy_only_if_missing=fast_scan)
-                                except ReplicationError:
+                                except ReplicationError, err:
                                     reposadocommon.print_stderr(
                                         'Could not replicate %s: %s',
                                         package['URL'], err)
@@ -598,7 +598,7 @@ def sync(fast_scan=False, download_packages=True):
                                     unused_path = replicateURLtoFilesystem(
                                         package['MetadataURL'], 
                                         copy_only_if_missing=fast_scan)
-                                except ReplicationError:
+                                except ReplicationError, err:
                                     reposadocommon.print_stderr(
                                         'Could not replicate %s: %s',
                                         package['MetadataURL'], err)
@@ -624,7 +624,9 @@ def sync(fast_scan=False, download_packages=True):
                                     copy_only_if_missing=fast_scan)
                             if dist_lang == preferred_lang:
                                 preferred_dist = dist_path
-                    except ReplicationError:
+                    except ReplicationError, err:
+                        reposadocommon.print_stderr(
+                            'Could not replicate %s: %s', dist_url, err)
                         continue
                     
                     if preferred_dist:
