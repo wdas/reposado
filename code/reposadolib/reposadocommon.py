@@ -350,7 +350,7 @@ def writeBranchCatalogs(localcatalogpath):
         print_stdout('Building %s...' % os.path.basename(branchcatalogpath))
         # embed branch catalog name into the catalog for troubleshooting
         # and validation
-        catalog['_BranchCatalogName'] = os.path.basename(branchcatalogpath)
+        catalog['_CatalogName'] = os.path.basename(branchcatalogpath)
         catalog['Products'] = {}
         for product_key in catalog_branches[branch]:
             if product_key in downloaded_products.keys():
@@ -419,6 +419,7 @@ def writeLocalCatalogs(applecatalogpath):
         localcatalogpath = applecatalogpath
     
     print_stdout('Building %s...' % os.path.basename(localcatalogpath))
+    catalog['_CatalogName'] = os.path.basename(localcatalogpath)
     downloaded_products_list = getDownloadStatus()
 
     downloaded_products = {}
