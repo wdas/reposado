@@ -30,7 +30,7 @@ RewriteRule ^index(.*)\.sucatalog$ content/catalogs/others/index-lion-snowleopar
 RewriteCond %{HTTP_USER_AGENT} Darwin/12
 RewriteRule ^index(.*)\.sucatalog$ content/catalogs/others/index-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog [L]
 
-(This requires Apache2 to be configured to actually pay attention to mod_rewite rules in .htaccess files. See your Apache and mod_rewrite documentation for details.)
+(This requires Apache2 to be configured to actually pay attention to mod_rewrite rules in .htaccess files. See your Apache and mod_rewrite documentation for details.)
 
 (Note that the format for these rules is specific for use in an .htaccess file. The rules would need to be changed if in the main Apache config file.)
 
