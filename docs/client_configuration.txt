@@ -9,6 +9,8 @@ sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate CatalogURL <ca
 
 where <catalog_url> is the URL to the catalog file.
 
+You can use URL rewriting on your web server to simplify client configuration. See URL_rewrites.txt for more on this.
+
 
 Tiger Clients
 -------------
