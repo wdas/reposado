@@ -348,6 +348,9 @@ def writeBranchCatalogs(localcatalogpath):
     for branch in catalog_branches.keys():
         branchcatalogpath = localcatalogpath + '_' + branch + '.sucatalog'
         print_stdout('Building %s...' % os.path.basename(branchcatalogpath))
+        # embed branch catalog name into the catalog for troubleshooting
+        # and validation
+        catalog['_BranchCatalogName'] = os.path.basename(branchcatalogpath)
         catalog['Products'] = {}
         for product_key in catalog_branches[branch]:
             if product_key in downloaded_products.keys():
