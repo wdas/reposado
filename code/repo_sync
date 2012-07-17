@@ -103,7 +103,12 @@ def parseSUdist(filename):
     su_name = ""
     title = ""
 
-    dom = minidom.parse(filename)
+    try:
+        dom = minidom.parse(filename)
+    except ExpatError:
+        reposadocommon.print_stderr(
+            'Invalid XML in %s', filename)
+        return None
 
     choice_elements = dom.getElementsByTagName("choice")
     if choice_elements:
@@ -631,6 +636,8 @@ def sync(fast_scan=False, download_packages=True):
                     
                     if preferred_dist:
                         dist = parseSUdist(preferred_dist)
+                        if not dist:
+                            continue
                         products[product_key]['title'] = dist['title']
                         products[product_key]['version'] = dist['version']
                         products[product_key]['size'] = str(size)
