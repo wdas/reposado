@@ -34,8 +34,35 @@ RewriteRule ^index(.*)\.sucatalog$ content/catalogs/others/index-mountainlion-li
 
 (Note that the format for these rules is specific for use in an .htaccess file. The rules would need to be changed if in the main Apache config file.)
 
-(Other web servers such as Nginx support URL rewriting; the specifics are slightly different, but the general concepts are similar.)
+Non-Apache servers
+------------------
 
+Other web servers support URL rewriting; the specifics are slightly different, but the general concepts are similar.
+
+Heig Gregorian has contributed this example of an Nginx configuration. This is an excerpt from the 'server' section of his Nginx config:
+
+## 10.4.x - Tiger
+if ( $http_user_agent ~ "Darwin/8" ){
+  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/index$1.sucatalog last;
+}
+## 10.5.x - Leopard
+if ( $http_user_agent ~ "Darwin/9" ){
+  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-leopard.merged-1$1.sucatalog last;
+}
+## 10.6.x - Snow Leopard
+if ( $http_user_agent ~ "Darwin/10" ){
+  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-leopard-snowleopard.merged-1$1.sucatalog last;
+}
+## 10.7.x - Lion
+if ( $http_user_agent ~ "Darwin/11" ){
+  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-lion-snowleopard-leopard.merged-1$1.sucatalog last;
+}
+## 10.8.x - Mountain Lion
+if ( $http_user_agent ~ "Darwin/12" ){
+  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog last;
+}
+
+Again, consult Nginx documentation for further information about URL rewriting.
 
 Testing
 _______
