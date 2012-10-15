@@ -156,7 +156,7 @@ def print_dist(key):
                             distContents = distFd.read()
                             distFd.close()
                             reposadocommon.print_stdout(distContents)
-                        except OSErr, errorMsg:
+                        except (IOError, OSError), errorMsg:
                             reposadocommon.print_stderr(
                                 'Error getting %s dist file for product %s:\n%s'
                                 % (lang, key, errorMsg))
