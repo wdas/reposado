@@ -619,36 +619,41 @@ def sync(fast_scan=False, download_packages=True):
                         distributions.keys())
                     preferred_dist = None
                     
-                    try:
-                        for dist_lang in distributions.keys():
-                            dist_url = distributions[dist_lang]
-                            if (download_packages or 
-                                dist_lang == preferred_lang):
+                    for dist_lang in distributions.keys():
+                        dist_url = distributions[dist_lang]
+                        if (download_packages or 
+                            dist_lang == preferred_lang):
+                            try:
                                 dist_path = replicateURLtoFilesystem(
                                     dist_url, 
                                     copy_only_if_missing=fast_scan)
-                            if dist_lang == preferred_lang:
-                                preferred_dist = dist_path
-                    except ReplicationError, err:
-                        reposadocommon.print_stderr(
-                            'Could not replicate %s: %s', dist_url, err)
-                        continue
+                                if dist_lang == preferred_lang:
+                                    preferred_dist = dist_path
+                            except ReplicationError, err:
+                                reposadocommon.print_stderr(
+                                    'Could not replicate %s: %s', dist_url, err)
+                                    
+                    if not preferred_dist:
+                        # we didn't download the .dist for the preferred 
+                        # language. Let's use English.
+                        if 'English' in distributions.keys():
+                            preferred_dist = 'English'
+                        elif 'en' in distributions.keys():
+                            preferred_dist = 'en'
                     
-                    if preferred_dist:
-                        dist = parseSUdist(preferred_dist)
-                        if not dist:
-                            continue
-                        products[product_key]['title'] = dist['title']
-                        products[product_key]['version'] = dist['version']
-                        products[product_key]['size'] = str(size)
-                        products[product_key]['description'] = \
-                            dist['description']
-                        products[product_key]['PostDate'] = \
-                            product['PostDate']
-                    else:
-                        products[product_key]['PostDate'] = \
-                            product['PostDate']
-                            
+                    dist = parseSUdist(preferred_dist)
+                    if not dist:
+                        reposadocommon.print_stderr(
+                            'Could not get data from %s.dist.', preferred_dist)
+                        continue
+                    products[product_key]['title'] = dist['title']
+                    products[product_key]['version'] = dist['version']
+                    products[product_key]['size'] = str(size)
+                    products[product_key]['description'] = \
+                        dist['description']
+                    products[product_key]['PostDate'] = \
+                        product['PostDate']
+                    
                     # if we got this far, we've replicated the product data
                     replicated_products.append(product_key)
                     
