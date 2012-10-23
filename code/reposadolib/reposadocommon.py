@@ -34,7 +34,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 """
-pysuscommon.py
+reposadocommon.py
 
 Created by Greg Neagle on 2011-03-03.
 """
