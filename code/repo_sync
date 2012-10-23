@@ -109,6 +109,10 @@ def parseSUdist(filename):
         reposadocommon.print_stderr(
             'Invalid XML in %s', filename)
         return None
+    except IOError, err:
+        reposadocommon.print_stderr(
+            'Error reading %s: %s', filename, err)
+        return None
 
     choice_elements = dom.getElementsByTagName("choice")
     if choice_elements:
