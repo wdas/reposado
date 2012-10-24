@@ -253,8 +253,8 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
                 os.remove(destinationpath)
 
         fileobj.close()
-    except Exception, e:
-        raise CurlError(-5, 'Error writing curl directive: %s' % str(e))
+    except Exception, err:
+        raise CurlError(-5, 'Error writing curl directive: %s' % str(err))
     
     cmd = [reposadocommon.pref('CurlPath'),
             '-q',                    # don't read .curlrc file
@@ -448,8 +448,8 @@ def replicateURLtoFilesystem(full_url, root_dir=None,
             raise ReplicationError(oserr)
     try:
         getURL(full_url, local_file_path)
-    except CurlDownloadError, e:
-        raise ReplicationError(e)
+    except CurlDownloadError, err:
+        raise ReplicationError(err)
     return local_file_path
     
 
@@ -641,14 +641,23 @@ def sync(fast_scan=False, download_packages=True):
                         # we didn't download the .dist for the preferred 
                         # language. Let's use English.
                         if 'English' in distributions.keys():
-                            preferred_dist = 'English'
+                            dist_lang = 'English'
                         elif 'en' in distributions.keys():
-                            preferred_dist = 'en'
+                            dist_lang = 'en'
+                        else:
+                            # no English or en.dist!
+                            reposadocommon.print_stderr(
+                                'No usable .dist file found!')
+                            continue
+                        dist_url = distributions[dist_lang]
+                        preferred_dist = reposadocommon.getLocalPathNameFromURL(
+                                             dist_url)
                     
                     dist = parseSUdist(preferred_dist)
                     if not dist:
                         reposadocommon.print_stderr(
-                            'Could not get data from %s.dist.', preferred_dist)
+                            'Could not get data from dist file: %s',
+                            preferred_dist)
                         continue
                     products[product_key]['title'] = dist['title']
                     products[product_key]['version'] = dist['version']
@@ -697,13 +706,13 @@ def sync(fast_scan=False, download_packages=True):
 
 def main():
     '''Main command processing'''
-    p = optparse.OptionParser()
-    p.set_usage('''Usage: %prog [options]''')
-    p.add_option('--recheck', action='store_true',
+    parser = optparse.OptionParser()
+    parser.set_usage('''Usage: %prog [options]''')
+    parser.add_option('--recheck', action='store_true',
                  help="""Recheck already downloaded packages for changes.""")
-    p.add_option('--log', dest='logfile', metavar='LOGFILE',
+    parser.add_option('--log', dest='logfile', metavar='LOGFILE',
                  help="""Log all output to LOGFILE. No output to STDOUT.""")
-    options, unused_arguments = p.parse_args()
+    options, unused_arguments = parser.parse_args()
     if reposadocommon.validPreferences():
         if not os.path.exists(reposadocommon.pref('CurlPath')):
             reposadocommon.print_stderr('ERROR: curl tool not found at %s',
