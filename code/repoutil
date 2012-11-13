@@ -348,7 +348,8 @@ def add_product_to_branch(parameters):
                     'Product info database may be incomplete.\n'
                     'Info for product:\n%s',
                     product_id, products[product_id])
-                return
+                # skip this one and move on
+                continue
             if product_id in catalog_branches[branch_name]:
                 reposadocommon.print_stderr(
                     '%s (%s-%s) is already in branch %s!', 
