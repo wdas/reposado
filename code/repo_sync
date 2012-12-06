@@ -54,17 +54,22 @@ from xml.parsers.expat import ExpatError
 
 from reposadolib import reposadocommon
 
-def os_rename(src, dst):
-    '''Pseudo-atomic implementation of os.rename() that works under windows
+def _win_os_rename(src, dst):
+    '''Non-atomic os.rename() that doesn't throw OSError under Windows
+
+	Windows doesn't allow renaming a file to a filename that already exists
     Idea from: http://bugs.python.org/issue8828#msg106599
     '''
-    if os.name in ('nt', 'ce'):
-        if os.path.exists(dst):
-            os.unlink(dst)
+    try:
         os.rename(src, dst)
-    else:
+    except OSError:
+        os.unlink(dst)
         os.rename(src, dst)
 
+if os.name in ('nt', 'ce'):
+    os_rename = _win_os_rename
+else:
+    os_rename = os.rename
 
 def parseServerMetadata(filename):
     '''Parses a softwareupdate server metadata file, looking for information 
