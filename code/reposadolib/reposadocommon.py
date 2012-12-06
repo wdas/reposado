@@ -306,6 +306,13 @@ def rewriteURLsForProduct(product):
         if 'MetadataURL' in package:
             package['MetadataURL'] = rewriteOneURL(
                 package['MetadataURL'])
+        # workaround for 10.8.2 issue where client ignores local pkg
+        # and prefers Apple's URL. Need to revisit as we better understand this 
+        # issue
+        if 'Digest' in package:
+            # removing the Digest causes 10.8.2 to use the replica's URL
+            # instead of Apple's
+            del package['Digest']
     distributions = product['Distributions']
     for dist_lang in distributions.keys():
         distributions[dist_lang] = rewriteOneURL(
