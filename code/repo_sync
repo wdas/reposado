@@ -43,6 +43,7 @@ import calendar
 import os
 import optparse
 import plistlib
+import re
 import shutil
 import subprocess
 #import sys
@@ -102,11 +103,48 @@ def parseServerMetadata(filename):
     return metadata
 
 
-def parseSUdist(filename):
-    '''Parses a softwareupdate dist file, looking for infomation of interest.
-    Returns a dictionary containing title, version, and description.'''
-    su_name = ""
-    title = ""
+def parse_cdata(cdata_str, debug=False):
+    '''Parses the CDATA string from an Apple Software Update distribution file 
+    and returns a dictionary with key/value pairs'''
+    
+    # remove any comment lines
+    lines = cdata_str.splitlines()
+    
+    cdata_str = '\n'.join([line for line in lines 
+                           if not line.startswith(r'//')])
+    # add a newline to the end if needed; makes matching easier!
+    if not cdata_str.endswith('\n'):
+        cdata_str += '\n'
+        
+    if debug:
+        print 'cdata_str: %s' % cdata_str
+
+    parsed_data = {}
+    REGEX =  r"""\s*(?P<key_quote>['"]?)(?P<key>[^'"]+)(?P=key_quote)\s*=\s*"""
+    REGEX += r"""(?P<value_quote>['"])(?P<value>.*?)(?P=value_quote);\n+"""
+    regex = re.compile(REGEX, re.DOTALL)
+    index = 0
+    while index < len(cdata_str):
+        match_obj = regex.search(cdata_str[index:])
+        if match_obj:
+            match_dict = match_obj.groupdict()
+            if 'key' in match_dict.keys() and 'value' in match_dict.keys():
+                key = match_dict['key']
+                value = match_dict['value']
+                quote = match_dict.get('value_quote')
+                if quote:
+                    escaped_quote = chr(92) + quote
+                    value = value.replace(escaped_quote, quote)
+                parsed_data[key] = value
+            index = index + match_obj.end()
+        else:
+            break
+    return parsed_data
+
+
+def parseSUdist(filename, debug=False):
+    '''Parses a softwareupdate dist file, looking for information of interest.
+    Returns a dictionary containing su_name, title, version, and description.'''
 
     try:
         dom = minidom.parse(filename)
@@ -118,18 +156,44 @@ def parseSUdist(filename):
         reposadocommon.print_stderr(
             'Error reading %s: %s', filename, err)
         return None
+    
+    su_choice_id_key = 'su'
+    # look for <choices-outline ui='SoftwareUpdate'
+    choice_outlines = dom.getElementsByTagName('choices-outline') or []
+    for outline in choice_outlines:
+        if 'ui' in outline.attributes.keys():
+            if outline.attributes['ui'].value == 'SoftwareUpdate':
+                if debug:
+                    print outline.toxml()
+                lines = outline.getElementsByTagName('line')
+                if lines:
+                    if debug:
+                        print lines[0].toxml()
+                    if 'choice' in lines[0].attributes.keys():
+                        su_choice_id_key = lines[0].attributes['choice'].value
 
-    choice_elements = dom.getElementsByTagName("choice")
-    if choice_elements:
-        for choice in choice_elements:
-            keys = choice.attributes.keys()
-            if 'suDisabledGroupID' in keys:
-                # this is the name as displayed from
-                # /usr/sbin/softwareupdate -l
-                su_name = choice.attributes[
-                    'suDisabledGroupID'].value
+    if debug:
+        print 'su_choice_id_key: %s' % su_choice_id_key
 
-    text = ""
+    # get values from choice id=su_choice_id_key (there may be more than one!)
+    su_choice = {}
+    choice_elements = dom.getElementsByTagName('choice') or []
+    for choice in choice_elements:
+        keys = choice.attributes.keys()
+        if 'id' in keys:
+            choice_id = choice.attributes['id'].value
+            if choice_id == su_choice_id_key:
+                if debug:
+                    print choice.toxml()
+                # this is the one Software Update uses
+                for key in keys:
+                    su_choice[key] = choice.attributes[key].value
+    
+    if debug:
+        print 'su_choice: %s' % su_choice
+
+    # look for localization and parse CDATA
+    cdata = {}
     localizations = dom.getElementsByTagName('localization')
     if localizations:
         string_elements = localizations[0].getElementsByTagName('strings')
@@ -137,47 +201,23 @@ def parseSUdist(filename):
             strings = string_elements[0]
             if strings.firstChild:
                 text = strings.firstChild.wholeText
+                if debug:
+                    print 'CDATA text: %s' % text
+                cdata = parse_cdata(text, debug=debug)
+                if debug:
+                    print 'CDATA dict: %s' % cdata
 
-    # get title, version and description as displayed in Software Update
-    title = vers = description = ""
-    keep = False
-    for line in text.split('\n'):
-        if line.startswith('"SU_TITLE"'):
-            title = line[10:]
-            title = title[title.find('"')+1:-2]
-        if line.startswith('"SU_VERS"'):
-            vers = line[9:]
-            vers = vers[vers.find('"')+1:-2]
-        if line.startswith('"SU_VERSION"'):
-            vers = line[12:]
-            vers = vers[vers.find('"')+1:-2]
-        if line.startswith('"SU_DESCRIPTION"'):
-            description = ""
-            keep = True
-            # lop off "SU_DESCRIPTION"
-            line = line[16:]
-            # lop off everything up through '
-            line = line[line.find("'")+1:]
-
-        if keep:
-            # replace escaped single quotes
-            line = line.replace("\\'","'")
-            if line == "';":
-                # we're done
-                break
-            elif line.endswith("';"):
-                # done
-                description += line[0:-2]
-                break
-            else:
-                # append the line to the description
-                description += line + "\n"
-
+    # assemble!
     dist = {}
-    dist['su_name'] = su_name
-    dist['title'] = title
-    dist['version'] = vers
-    dist['description'] = description
+    dist['su_name'] = su_choice.get('suDisabledGroupID', '')
+    dist['title'] = su_choice.get('title', '')
+    dist['version'] = su_choice.get('versStr', '')
+    dist['description'] = su_choice.get('description', '')
+    for key in dist.keys():
+        if dist[key].startswith('SU_'):
+            # get value from cdata dictionary
+            dist[key] = cdata.get(dist[key], dist[key])
+
     return dist
 
 

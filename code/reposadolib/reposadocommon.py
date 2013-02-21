@@ -107,9 +107,9 @@ def configure_prefs():
     _prefs = {}
     keysAndPrompts = [
         ('UpdatesRootDir', 
-         'Path to store replicated catalogs and updates'),
+         'Filesystem path to store replicated catalogs and updates'),
         ('UpdatesMetadataDir', 
-         'Path to store Reposado metadata'),
+         'Filesystem path to store Reposado metadata'),
         ('LocalCatalogURLBase', 
          'Base URL for your local Software Update Service\n(Example: http://su.your.org -- leave empty if you are not replicating updates)'),
         ]
