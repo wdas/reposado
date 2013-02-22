@@ -103,42 +103,49 @@ def parseServerMetadata(filename):
     return metadata
 
 
-def parse_cdata(cdata_str, debug=False):
+def parse_cdata(cdata_str):
     '''Parses the CDATA string from an Apple Software Update distribution file 
-    and returns a dictionary with key/value pairs'''
-    
-    # remove any comment lines
-    lines = cdata_str.splitlines()
-    
-    cdata_str = '\n'.join([line for line in lines 
-                           if not line.startswith(r'//')])
-    # add a newline to the end if needed; makes matching easier!
-    if not cdata_str.endswith('\n'):
-        cdata_str += '\n'
-        
-    if debug:
-        print 'cdata_str: %s' % cdata_str
+    and returns a dictionary with key/value pairs.
 
+    The data in the CDATA string is in the format of an OS X .strings file,
+    which is generally:
+
+    "KEY1" = "VALUE1";
+    "KEY2"='VALUE2';
+    "KEY3" = 'A value
+    that spans
+    multiple lines.
+    ';
+
+    Values can span multiple lines; either single or double-quotes can be used 
+    to quote the keys and values, and the alternative quote character is allowed 
+    as a literal inside the other, otherwise the quote character is escaped.
+
+    //-style comments and blank lines are allowed in the string; these should
+    be skipped by the parser unless within a value.
+
+    '''
     parsed_data = {}
-    REGEX =  r"""\s*(?P<key_quote>['"]?)(?P<key>[^'"]+)(?P=key_quote)\s*=\s*"""
-    REGEX += r"""(?P<value_quote>['"])(?P<value>.*?)(?P=value_quote);\n+"""
-    regex = re.compile(REGEX, re.DOTALL)
-    index = 0
-    while index < len(cdata_str):
-        match_obj = regex.search(cdata_str[index:])
-        if match_obj:
-            match_dict = match_obj.groupdict()
-            if 'key' in match_dict.keys() and 'value' in match_dict.keys():
-                key = match_dict['key']
-                value = match_dict['value']
-                quote = match_dict.get('value_quote')
-                if quote:
-                    escaped_quote = chr(92) + quote
-                    value = value.replace(escaped_quote, quote)
-                parsed_data[key] = value
-            index = index + match_obj.end()
-        else:
-            break
+    REGEX = (r"""^\s*"""
+              """(?P<key_quote>['"]?)(?P<key>[^'"]+)(?P=key_quote)"""
+              """\s*=\s*"""
+              """(?P<value_quote>['"])(?P<value>.*?)(?P=value_quote);$""")
+    regex = re.compile(REGEX, re.MULTILINE | re.DOTALL)
+
+    # iterate through the string, finding all possible non-overlapping
+    # matches
+    for match_obj in re.finditer(regex, cdata_str):
+        match_dict = match_obj.groupdict()
+        if 'key' in match_dict.keys() and 'value' in match_dict.keys():
+            key = match_dict['key']
+            value = match_dict['value']
+            # now 'de-escape' escaped quotes
+            quote = match_dict.get('value_quote')
+            if quote:
+                escaped_quote = '\\' + quote
+                value = value.replace(escaped_quote, quote)
+            parsed_data[key] = value
+
     return parsed_data
 
 
@@ -203,7 +210,7 @@ def parseSUdist(filename, debug=False):
                 text = strings.firstChild.wholeText
                 if debug:
                     print 'CDATA text: %s' % text
-                cdata = parse_cdata(text, debug=debug)
+                cdata = parse_cdata(text)
                 if debug:
                     print 'CDATA dict: %s' % cdata
 
