@@ -603,7 +603,7 @@ def main():
                     dest='add_product', nargs=2,
                     metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
                     help='''Add one or more PRODUCT_IDs to catalog branch
-                    BRANCH_NAME.  --add_product all BRANCH_NAME will add
+                    BRANCH_NAME.  --add-product all BRANCH_NAME will add
                     all cached products, including deprecated products, to
                     catalog BRANCH_NAME.''')
     p.add_option('--remove-product', '--remove-products', nargs=2,
