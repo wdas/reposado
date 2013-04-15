@@ -90,6 +90,30 @@ def getProductLocation(product, product_id):
             return None
 
 
+def getRestartNeeded(product):
+    '''Returns "Yes" if all pkg_refs require a restart or shutdown,
+    "No" if none do, and "Sometimes" if some do and some don't.
+    Returns "UNKNOWN" if there is no pkg_ref data for the update.'''
+    
+    pkgs = product.get('pkg_refs', {}).keys()
+    pkg_count = len(pkgs)
+    if pkg_count == 0:
+        return "UNKNOWN"
+    restart_count = 0
+    for pkg in pkgs:
+        if 'RestartAction' in product['pkg_refs'][pkg]:
+            restart_count += 1
+    if restart_count == 0:
+        # no pkgs require a restart/shutdown/logout
+        return "No"
+    elif restart_count == pkg_count:
+        # all pkgs require a restart/shutdown/logout
+        return "Yes"
+    else:
+        # some pkgs require a restart/shutdown/logout
+        return "Sometimes"
+
+
 def print_info(key):
     '''Prints detail for a specific product'''
     products = reposadocommon.getProductInfo()
@@ -104,35 +128,37 @@ def print_info(key):
         branchlist = [branch for branch in catalog_branches.keys()
                       if key in catalog_branches[branch]]
         
-        reposadocommon.print_stdout('Product:   %s', key)
-        reposadocommon.print_stdout('Title:     %s', product.get('title'))
-        reposadocommon.print_stdout('Version:   %s', product.get('version'))
-        reposadocommon.print_stdout('Size:      %s',
+        reposadocommon.print_stdout('Product:       %s', key)
+        reposadocommon.print_stdout('Title:         %s', product.get('title'))
+        reposadocommon.print_stdout('Version:       %s', product.get('version'))
+        reposadocommon.print_stdout('Size:          %s', 
             humanReadable(product.get('size', 0)))
         reposadocommon.print_stdout(
-            'Post Date: %s', product.get('PostDate'))
+            'Post Date:     %s', product.get('PostDate'))
+        reposadocommon.print_stdout('RestartNeeded: %s', 
+            getRestartNeeded(product))
         if reposadocommon.pref('LocalCatalogURLBase'):
             # we're replicating products locally
-            reposadocommon.print_stdout('Status:    %s', status)
+            reposadocommon.print_stdout('Status:        %s', status)
             if status == 'Downloaded':
                 reposadocommon.print_stdout(
-                    'Location:  %s' % getProductLocation(product, key))
+                    'Location:      %s' % getProductLocation(product, key))
         if products[key].get('AppleCatalogs'):
             reposadocommon.print_stdout('AppleCatalogs:')
             for catalog in product['AppleCatalogs']:
-                reposadocommon.print_stdout('           %s', catalog)
+                reposadocommon.print_stdout('               %s', catalog)
         else:
             reposadocommon.print_stdout('           Product is deprecated.')
             if product.get('OriginalAppleCatalogs'):
                 reposadocommon.print_stdout('OriginalAppleCatalogs:')
                 for catalog in product['OriginalAppleCatalogs']:
-                    reposadocommon.print_stdout('           %s', catalog)
+                    reposadocommon.print_stdout('               %s', catalog)
         reposadocommon.print_stdout('Branches:')
         if branchlist:
             for branch in branchlist:
-                reposadocommon.print_stdout('           %s', branch)
+                reposadocommon.print_stdout('               %s', branch)
         else:
-            reposadocommon.print_stdout('           <None>')
+            reposadocommon.print_stdout('               <None>')
         reposadocommon.print_stdout('HTML Description:')
         reposadocommon.print_stdout(product.get('description'))
     else:

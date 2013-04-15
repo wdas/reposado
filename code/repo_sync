@@ -183,6 +183,7 @@ def parseSUdist(filename, debug=False):
         print 'su_choice_id_key: %s' % su_choice_id_key
 
     # get values from choice id=su_choice_id_key (there may be more than one!)
+    pkgs = {}
     su_choice = {}
     choice_elements = dom.getElementsByTagName('choice') or []
     for choice in choice_elements:
@@ -195,6 +196,22 @@ def parseSUdist(filename, debug=False):
                 # this is the one Software Update uses
                 for key in keys:
                     su_choice[key] = choice.attributes[key].value
+                pkg_refs = choice.getElementsByTagName('pkg-ref') or []
+                for pkg in pkg_refs:
+                    if 'id' in pkg.attributes.keys():
+                        pkg_id = pkg.attributes['id'].value
+                        if not pkg_id in pkgs.keys():
+                            pkgs[pkg_id] = {}
+                        if pkg.firstChild:
+                            pkg_name = pkg.firstChild.wholeText
+                            if pkg_name:
+                                pkgs[pkg_id]['name'] = pkg_name
+                        if 'onConclusion' in pkg.attributes.keys():
+                            pkgs[pkg_id]['RestartAction'] = \
+                                pkg.attributes['onConclusion'].value
+                        if 'version' in pkg.attributes.keys():
+                            pkgs[pkg_id]['version'] = \
+                                pkg.attributes['version'].value
     
     if debug:
         print 'su_choice: %s' % su_choice
@@ -224,6 +241,7 @@ def parseSUdist(filename, debug=False):
         if dist[key].startswith('SU_'):
             # get value from cdata dictionary
             dist[key] = cdata.get(dist[key], dist[key])
+    dist['pkg_refs'] = pkgs
 
     return dist
 
@@ -718,6 +736,8 @@ def sync(fast_scan=False, download_packages=True):
                         dist['description']
                     products[product_key]['PostDate'] = \
                         product['PostDate']
+                    products[product_key]['pkg_refs'] = \
+                        dist['pkg_refs']
                     
                     # if we got this far, we've replicated the product data
                     replicated_products.append(product_key)
