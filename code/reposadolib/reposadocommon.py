@@ -349,7 +349,12 @@ def writeAllBranchCatalogs():
     '''Writes out all branch catalogs. Used when we edit branches.'''
     for catalog_URL in pref('AppleCatalogURLs'):
         localcatalogpath = getLocalPathNameFromURL(catalog_URL)
-        writeBranchCatalogs(localcatalogpath)
+        if os.path.exists(localcatalogpath):
+            writeBranchCatalogs(localcatalogpath)
+        else:
+            print_stderr(
+                'WARNING: %s does not exist. Perhaps you need to run repo_sync?'
+                % localcatalogpath)
 
 
 def writeBranchCatalogs(localcatalogpath):
