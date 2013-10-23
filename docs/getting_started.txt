@@ -41,6 +41,8 @@ is the CatalogURL for the Snow Leopard updates catalog. You should see a plist v
 
 7) Next test: run softwareupdate on a client, again pointing it to your Catalog URL:
 
+NOTE: the '--CatalogURL' option was removed from softwareupdate in 10.9 Mavericks
+
 softwareupdate -l --CatalogURL "http://su.myorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog"
 
 If there are no errors, you've successfully configured Reposado and successfully replicated Apple Software Updates.
