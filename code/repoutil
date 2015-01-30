@@ -33,12 +33,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
-'''A tool to replicate most of the functionality of 
+'''A tool to replicate most of the functionality of
 Apple Software Update server'''
 
 import optparse
 import os
 import shutil
+from xml.dom import minidom
+from xml.parsers.expat import ExpatError
 
 from reposadolib import reposadocommon
 
@@ -61,9 +63,6 @@ def getProductLocation(product, product_id):
     '''Returns local path to replicated product
     We pass in the product dictionary to avoid calling
     reposadocommon.getProductInfo(), which is slow.'''
-    if not reposadocommon.pref('LocalCatalogURLBase'):
-        # we're not replicating products
-        return None
     if not 'CatalogEntry' in product:
         # something is wrong with the product entry
         return None
@@ -94,7 +93,7 @@ def getRestartNeeded(product):
     '''Returns "Yes" if all pkg_refs require a restart or shutdown,
     "No" if none do, and "Sometimes" if some do and some don't.
     Returns "UNKNOWN" if there is no pkg_ref data for the update.'''
-    
+
     pkgs = product.get('pkg_refs', {}).keys()
     pkg_count = len(pkgs)
     if pkg_count == 0:
@@ -127,16 +126,16 @@ def print_info(key):
         catalog_branches = reposadocommon.getCatalogBranches()
         branchlist = [branch for branch in catalog_branches.keys()
                       if key in catalog_branches[branch]]
-        
+
         reposadocommon.print_stdout('Product:       %s', key)
         reposadocommon.print_stdout('Title:         %s', product.get('title'))
         reposadocommon.print_stdout('Version:       %s', product.get('version'))
-        reposadocommon.print_stdout('Size:          %s', 
-            humanReadable(product.get('size', 0)))
+        reposadocommon.print_stdout('Size:          %s',
+                                    humanReadable(product.get('size', 0)))
         reposadocommon.print_stdout(
             'Post Date:     %s', product.get('PostDate'))
-        reposadocommon.print_stdout('RestartNeeded: %s', 
-            getRestartNeeded(product))
+        reposadocommon.print_stdout(
+            'RestartNeeded: %s', getRestartNeeded(product))
         if reposadocommon.pref('LocalCatalogURLBase'):
             # we're replicating products locally
             reposadocommon.print_stdout('Status:        %s', status)
@@ -165,6 +164,71 @@ def print_info(key):
         reposadocommon.print_stdout('No product id %s found.', key)
 
 
+def readXMLfile(filename):
+    '''Return dom from XML file or None'''
+    try:
+        dom = minidom.parse(filename)
+    except ExpatError:
+        reposadocommon.print_stderr(
+            'Invalid XML in %s', filename)
+        return None
+    except IOError, err:
+        reposadocommon.print_stderr(
+            'Error reading %s: %s', filename, err)
+        return None
+    return dom
+
+
+def writeXMLtoFile(node, path):
+    '''Write XML dom node to file'''
+    xml_string = node.toxml()
+    try:
+        fileobject = open(path, mode='w')
+        print >> fileobject, xml_string
+        fileobject.close()
+    except (OSError, IOError):
+        reposadocommon.print_stderr('Couldn\'t write XML to %s' % path)
+
+
+def remove_config_data_attribute(product_list):
+    '''Remove the type="config-data" attribute from the distribution options for
+    a product. This makes softwareupdate find and display updates like
+    XProtectPlistConfigData and Gatekeeper Configuration Data, which it normally
+    does not.'''
+    for key in product_list:
+        products = reposadocommon.getProductInfo()
+        if key in products:
+            if products[key].get('CatalogEntry'):
+                distributions = products[key]['CatalogEntry'].get(
+                    'Distributions', {})
+                for lang in distributions.keys():
+                    distPath = reposadocommon.getLocalPathNameFromURL(
+                        products[key]['CatalogEntry']['Distributions'][lang])
+                    dom = readXMLfile(distPath)
+                    if dom:
+                        found_config_data = False
+                        option_elements = (
+                            dom.getElementsByTagName('options') or [])
+                        for element in option_elements:
+                            if 'type' in element.attributes.keys():
+                                if (element.attributes['type'].value
+                                        == 'config-data'):
+                                    found_config_data = True
+                                    element.removeAttribute('type')
+                        # done editing dom
+                        if found_config_data:
+                            try:
+                                writeXMLtoFile(dom, distPath)
+                            except (OSError, IOError):
+                                pass
+                            else:
+                                reposadocommon.print_stdout(
+                                    'Updated dist: %s', distPath)
+                        else:
+                            reposadocommon.print_stdout(
+                                'No config-data in %s', distPath)
+
+
 def print_dist(key):
     '''Print the .dist file for a specific product for every language in
     PreferredLocalizations'''
@@ -176,7 +240,8 @@ def print_dist(key):
                 for lang in languages:
                     if products[key]['CatalogEntry']['Distributions'].get(lang):
                         distPath = reposadocommon.getLocalPathNameFromURL(
-                          products[key]['CatalogEntry']['Distributions'][lang])
+                            products[key]['CatalogEntry'][
+                                'Distributions'][lang])
                         try:
                             distFd = open(distPath, 'r')
                             distContents = distFd.read()
@@ -226,15 +291,15 @@ def print_product_line(key, products, catalog_branches=None):
             deprecation_state = '(Deprecated)'
         try:
             post_date = products[key].get('PostDate').strftime('%Y-%m-%d')
-        except Exception:
+        except BaseException:
             post_date = 'None'
         reposadocommon.print_stdout(
             '%-15s %-50s %-10s %-10s %s %s',
-            key, 
-            products[key].get('title'), 
+            key,
+            products[key].get('title'),
             products[key].get('version'),
             post_date,
-            branchlist, 
+            branchlist,
             deprecation_state)
     else:
         reposadocommon.print_stdout('%-15s <MISSING INFO>', key)
@@ -332,34 +397,35 @@ def list_products(sort_order='date', reverse_sort=False,
         print_product_line(product['key'], products, catalog_branches)
     for error in errormessages:
         reposadocommon.print_stderr('WARNING: %s' % error)
-        
-        
+
+
 def add_product_to_branch(parameters):
     '''Adds one or more products to a branch. Takes a list of strings.
-    The last string must be the name of a branch catalog. All other 
+    The last string must be the name of a branch catalog. All other
     strings must be product_ids.'''
     # sanity checking
     for item in parameters:
         if item.startswith('-'):
-            reposadocommon.print_stderr('Ambiguous parameters: can\'t tell if  '
-                                     '%s is a parameter or an option!', item)
+            reposadocommon.print_stderr(
+                'Ambiguous parameters: can\'t tell if  '
+                '%s is a parameter or an option!', item)
             return
     branch_name = parameters[-1]
     product_id_list = parameters[0:-1]
-    
+
     # remove all duplicate product ids
     product_id_list = list(set(product_id_list))
-    
+
     catalog_branches = reposadocommon.getCatalogBranches()
     if not branch_name in catalog_branches:
         reposadocommon.print_stderr('Catalog branch %s doesn\'t exist!',
-                                branch_name)
+                                    branch_name)
         return
-        
+
     products = reposadocommon.getProductInfo()
     if 'all' in product_id_list:
         product_id_list = products.keys()
-    
+
     for product_id in product_id_list:
         if not product_id in products:
             reposadocommon.print_stderr(
@@ -378,37 +444,37 @@ def add_product_to_branch(parameters):
                 continue
             if product_id in catalog_branches[branch_name]:
                 reposadocommon.print_stderr(
-                    '%s (%s-%s) is already in branch %s!', 
+                    '%s (%s-%s) is already in branch %s!',
                     product_id, title, vers, branch_name)
             else:
                 reposadocommon.print_stdout(
-                    'Adding %s (%s-%s) to branch %s...', 
+                    'Adding %s (%s-%s) to branch %s...',
                     product_id, title, vers, branch_name)
                 catalog_branches[branch_name].append(product_id)
-            
+
     reposadocommon.writeCatalogBranches(catalog_branches)
     reposadocommon.writeAllBranchCatalogs()
 
 
 def remove_product_from_branch(parameters):
     '''Removes one or more products from a branch. Takes a list of strings.
-    The last string must be the name of a branch catalog. All other 
+    The last string must be the name of a branch catalog. All other
     strings must be product_ids.'''
-    
-    # sanity checking 
+
+    # sanity checking
     for item in parameters:
         if item.startswith('-'):
             reposadocommon.print_stderr(
                 'Ambiguous parameters: can\'t tell if  '
                 '%s is a parameter or an option!', item)
             return
-            
+
     branch_name = parameters[-1]
     product_id_list = parameters[0:-1]
-    
+
     # remove all duplicate product ids
     product_id_list = list(set(product_id_list))
-    
+
     catalog_branches = reposadocommon.getCatalogBranches()
     if not branch_name in catalog_branches:
         reposadocommon.print_stderr(
@@ -425,45 +491,45 @@ def remove_product_from_branch(parameters):
             title = 'UNKNOWN'
             vers = 'UNKNOWN'
         if not product_id in catalog_branches[branch_name]:
-            reposadocommon.print_stderr('%s (%s-%s) is not in branch %s!', 
-                                    product_id, title, vers, branch_name)
+            reposadocommon.print_stderr('%s (%s-%s) is not in branch %s!',
+                                        product_id, title, vers, branch_name)
             continue
 
-        reposadocommon.print_stdout('Removing %s (%s-%s) from branch %s...', 
-            product_id, title, vers, branch_name)
+        reposadocommon.print_stdout('Removing %s (%s-%s) from branch %s...',
+                                    product_id, title, vers, branch_name)
         catalog_branches[branch_name].remove(product_id)
     reposadocommon.writeCatalogBranches(catalog_branches)
     reposadocommon.writeAllBranchCatalogs()
 
 
 def purge_product(product_ids, force=False):
-    '''Removes products from the ProductInfo.plist and purges their local 
+    '''Removes products from the ProductInfo.plist and purges their local
     replicas (if they exist). Warns and skips if a product is not deprecated
-    or is in any branch, unless force == True. If force == True, product is 
+    or is in any branch, unless force == True. If force == True, product is
     also removed from all branches. This action is destructive and cannot be
     undone.
     product_ids is a list of productids.'''
-    
+
     # sanity checking
     for item in product_ids:
         if item.startswith('-'):
             reposadocommon.print_stderr('Ambiguous parameters: can\'t tell if  '
-                                     '%s is a parameter or an option!', item)
+                                        '%s is a parameter or an option!', item)
             return
-    
+
     products = reposadocommon.getProductInfo()
     catalog_branches = reposadocommon.getCatalogBranches()
     downloaded_product_list = reposadocommon.getDownloadStatus()
-    
+
     if 'all-deprecated' in product_ids:
         product_ids.remove('all-deprecated')
         deprecated_productids = [key for key in products.keys()
                                  if not products[key].get('AppleCatalogs')]
         product_ids.extend(deprecated_productids)
-        
+
     # remove all duplicate product ids
     product_ids = list(set(product_ids))
-    
+
     for product_id in product_ids:
         if not product_id in products:
             reposadocommon.print_stderr(
@@ -471,7 +537,8 @@ def purge_product(product_ids, force=False):
                 'Skipping.', product_id)
             continue
         product = products[product_id]
-        product_short_info = ('%s (%s-%s)' 
+        product_short_info = (
+            '%s (%s-%s)'
             % (product_id, product.get('title'), product.get('version')))
         if product.get('AppleCatalogs') and not force:
             reposadocommon.print_stderr(
@@ -492,15 +559,15 @@ def purge_product(product_ids, force=False):
                 # remove product from all branches
                 for branch_name in branches_with_product:
                     reposadocommon.print_stdout(
-                        'Removing %s from branch %s...', 
+                        'Removing %s from branch %s...',
                         product_short_info, branch_name)
                     catalog_branches[branch_name].remove(product_id)
-                
+
         local_copy = getProductLocation(product, product_id)
         if local_copy:
             # remove local replica
             reposadocommon.print_stdout(
-                'Removing replicated %s from %s...', 
+                'Removing replicated %s from %s...',
                 product_short_info, local_copy)
             try:
                 shutil.rmtree(local_copy)
@@ -513,7 +580,7 @@ def purge_product(product_ids, force=False):
         # delete product from downloaded product list
         if product_id in downloaded_product_list:
             downloaded_product_list.remove(product_id)
-        
+
     # write out changed catalog branches, productInfo,
     # and rebuild our local and branch catalogs
     reposadocommon.writeDownloadStatus(downloaded_product_list)
@@ -524,7 +591,7 @@ def purge_product(product_ids, force=False):
 
 def copy_branches(source_branch, dest_branch):
     '''Copies source_branch to dest_branch, replacing dest_branch'''
-    # sanity checking 
+    # sanity checking
     for branch in [source_branch, dest_branch]:
         if branch.startswith('-'):
             reposadocommon.print_stderr(
@@ -537,17 +604,17 @@ def copy_branches(source_branch, dest_branch):
         return
     if dest_branch in catalog_branches:
         answer = raw_input(
-            'Really replace contents of branch %s with branch %s? [y/n] ' 
-             % (dest_branch, source_branch))
+            'Really replace contents of branch %s with branch %s? [y/n] '
+            % (dest_branch, source_branch))
         if not answer.lower().startswith('y'):
             return
     catalog_branches[dest_branch] = catalog_branches[source_branch]
     reposadocommon.print_stdout('Copied contents of branch %s to branch %s.',
-        source_branch, dest_branch)
+                                source_branch, dest_branch)
     reposadocommon.writeCatalogBranches(catalog_branches)
     reposadocommon.writeAllBranchCatalogs()
-    
-    
+
+
 def delete_branch(branchname):
     '''Deletes a branch'''
     catalog_branches = reposadocommon.getCatalogBranches()
@@ -559,7 +626,7 @@ def delete_branch(branchname):
         del catalog_branches[branchname]
         deleteBranchCatalogs(branchname)
         reposadocommon.writeCatalogBranches(catalog_branches)
-    
+
 
 def new_branch(branchname):
     '''Creates a new empty branch'''
@@ -578,74 +645,78 @@ def configure():
 
 def main():
     '''Main command processing'''
-    
+
     p = optparse.OptionParser()
     p.set_usage('''Usage: %prog [options]''')
     #p.add_option('--sync', action='store_true',
-    #                help="""Synchronize Apple updates""")
+    #             help="""Synchronize Apple updates""")
     p.add_option('--configure', action='store_true',
-                    help="""Configure Reposado preferences.""")
+                 help="""Configure Reposado preferences.""")
     p.add_option('--products', '--updates', action='store_true',
-                    dest='products',
-                    help="""List available updates""")
+                 dest='products',
+                 help="""List available updates""")
     p.add_option('--deprecated', action='store_true',
-                    help="""List deprecated updates""")
+                 help="""List deprecated updates""")
     p.add_option('--sort', metavar='SORT_ORDER', default='date',
-                    help="""Sort list. 
-                    Available sort orders are: date, title, id""")
+                 help="""Sort list.
+                 Available sort orders are: date, title, id""")
     p.add_option('--reverse', action='store_true',
-                    help="""Reverse sort order.""")
-    p.add_option('--branches', '--catalogs', 
-                    dest='list_branches', action='store_true',
-                    help="""List available branch catalogs""")
+                 help="""Reverse sort order.""")
+    p.add_option('--branches', '--catalogs',
+                 dest='list_branches', action='store_true',
+                 help="""List available branch catalogs""")
     p.add_option('--new-branch',
-                    metavar='BRANCH_NAME',
-                    help='''Create new empty branch BRANCH_NAME.''')
+                 metavar='BRANCH_NAME',
+                 help='''Create new empty branch BRANCH_NAME.''')
     p.add_option('--delete-branch',
-                    metavar='BRANCH_NAME',
-                    help='''Delete branch BRANCH_NAME.''')
+                 metavar='BRANCH_NAME',
+                 help='''Delete branch BRANCH_NAME.''')
     p.add_option('--copy-branch', nargs=2,
-                    metavar='SOURCE_BRANCH DEST_BRANCH',
-                    help='''Copy all items from SOURCE_BRANCH to
-                    DEST_BRANCH. If DEST_BRANCH does not exist,
-                    it will be created.''')
-    p.add_option('--list-branch', '--list-catalog', 
-                    dest='branch',
-                    metavar='BRANCH_NAME',
-                    help="""List updates in branch BRANCH_NAME""")
-    p.add_option('--diff', '--diff-branch', '--diff-branches', 
-                    dest='diff_branch', nargs=2,
-                    metavar='BRANCH1_NAME BRANCH2_NAME',
-                    help="""Display differences between two branches""")
+                 metavar='SOURCE_BRANCH DEST_BRANCH',
+                 help='''Copy all items from SOURCE_BRANCH to
+                 DEST_BRANCH. If DEST_BRANCH does not exist,
+                 it will be created.''')
+    p.add_option('--list-branch', '--list-catalog',
+                 dest='branch',
+                 metavar='BRANCH_NAME',
+                 help="""List updates in branch BRANCH_NAME""")
+    p.add_option('--diff', '--diff-branch', '--diff-branches',
+                 dest='diff_branch', nargs=2,
+                 metavar='BRANCH1_NAME BRANCH2_NAME',
+                 help="""Display differences between two branches""")
     p.add_option('--product-info', '--info', metavar='PRODUCT_ID',
-                    dest='info',
-                    help="""Print info on a specific update.""")
+                 dest='info',
+                 help="""Print info on a specific update.""")
     p.add_option('--product-dist', '--dist', metavar='PRODUCT_ID',
-                    dest='dist',
-                    help="""Print the contents of the .dist file for a specific
-                    update.""")
+                 dest='dist',
+                 help="""Print the contents of the .dist file for a specific
+                 update.""")
     p.add_option('--add-product', '--add-products',
                  '--add-update', '--add-updates', '--add',
-                    dest='add_product', nargs=2,
-                    metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
-                    help='''Add one or more PRODUCT_IDs to catalog branch
-                    BRANCH_NAME.  --add-product all BRANCH_NAME will add
-                    all cached products, including deprecated products, to
-                    catalog BRANCH_NAME.''')
+                 dest='add_product', nargs=2,
+                 metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
+                 help='''Add one or more PRODUCT_IDs to catalog branch
+                 BRANCH_NAME.  --add-product all BRANCH_NAME will add
+                 all cached products, including deprecated products, to
+                 catalog BRANCH_NAME.''')
     p.add_option('--remove-product', '--remove-products', nargs=2,
-                    metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
-                    help='''Remove one or more PRODUCT_IDs from catalog branch
-                    BRANCH_NAME.''')
+                 metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
+                 help='''Remove one or more PRODUCT_IDs from catalog branch
+                 BRANCH_NAME.''')
+    p.add_option('--remove-config-data',
+                 metavar='PRODUCT_ID [PRODUCT_ID ...]',
+                 help='''Remove the 'type="config-data"' attribute from one or
+                 more PRODUCT_IDs.''')
     p.add_option('--purge-product', '--purge-products',
-                    metavar='PRODUCT_ID [PRODUCT_ID ...] [--force]',
-                    help='''Purge one or more PRODUCT_IDs from product
-                    database and remove any locally replicated version.''')
+                 metavar='PRODUCT_ID [PRODUCT_ID ...] [--force]',
+                 help='''Purge one or more PRODUCT_IDs from product
+                 database and remove any locally replicated version.''')
     p.add_option('--force', action='store_true',
-                    help="""Force purge of product. Must be used with
-                    --purge-product option.""")
-    
-    options, arguments  = p.parse_args()
-    
+                 help="""Force purge of product. Must be used with
+                 --purge-product option.""")
+
+    options, arguments = p.parse_args()
+
     if options.configure:
         configure()
     if options.products:
@@ -681,7 +752,11 @@ def main():
         product_ids = [options.purge_product]
         product_ids.extend(arguments)
         purge_product(product_ids, force=options.force)
-        
+    if options.remove_config_data:
+        params = [options.remove_config_data]
+        params.extend(arguments)
+        remove_config_data_attribute(params)
+
 
 if __name__ == '__main__':
     main()
