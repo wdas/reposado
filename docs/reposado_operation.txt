@@ -68,6 +68,8 @@ Removing zzzz041-0532 (iTunes-10.2.2) from branch testing...
 
 would remove both iTunes 10.2.2.
 
+repoutil --purge-product all-deprecated removes all deprecated products.
+
 You can list the contents of branch catalogs:
 
 repoutil --list-branch testing
