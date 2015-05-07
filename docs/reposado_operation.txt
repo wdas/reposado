@@ -104,4 +104,8 @@ zzzz041-0306   iTunes   10.2   2011-03-02 ['release', 'testing'] (Deprecated)
 
 When adding a newer version of iTunes to the testing or release branches, you'd want to be certain to remove these older, deprecated versions.
 
+Purging deprecated products
+----------------------------
+If you no longer want to keep deprecated products in your repository you can remove these products one by one as described under "Removing products from a branch catalog". If you have not removed deprecated products in a while your repository may include many deprecated products, however. Removing them individually could be very tedious. Instead, you can remove all deprecated products from your repository at the same time by substituting 'all-deprecated' for the product.
+
 
