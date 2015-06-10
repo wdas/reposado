@@ -79,12 +79,15 @@ def pref(prefname):
              'index-lion-snowleopard-leopard.merged-1.sucatalog'),
             ('http://swscan.apple.com/content/catalogs/others/'
              'index-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog'),
-            ('http://swscan.apple.com/content/catalogs/others/'
+            ('https://swscan.apple.com/content/catalogs/others/'
              'index-10.9-mountainlion-lion-snowleopard-leopard.merged-1'
              '.sucatalog'),
-            ('http://swscan.apple.com/content/catalogs/others/'
+            ('https://swscan.apple.com/content/catalogs/others/'
              'index-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1'
-             '.sucatalog')
+             '.sucatalog'),
+            ('https://swscan.apple.com/content/catalogs/others/'
+             'index-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard'
+             '.merged-1.sucatalog')
         ],
         'PreferredLocalizations': ['English', 'en'],
         'CurlPath': '/usr/bin/curl'
