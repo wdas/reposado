@@ -195,8 +195,8 @@ def remove_config_data_attribute(product_list):
     a product. This makes softwareupdate find and display updates like
     XProtectPlistConfigData and Gatekeeper Configuration Data, which it normally
     does not.'''
+    products = reposadocommon.getProductInfo()
     for key in product_list:
-        products = reposadocommon.getProductInfo()
         if key in products:
             if products[key].get('CatalogEntry'):
                 distributions = products[key]['CatalogEntry'].get(
