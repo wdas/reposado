@@ -47,6 +47,7 @@ import time
 import urlparse
 import warnings
 from xml.parsers.expat import ExpatError
+from xml.dom import minidom
 
 def get_main_dir():
     '''Returns the directory name of the script or the directory name of the exe
@@ -474,6 +475,84 @@ def writeLocalCatalogs(applecatalogpath):
 
     # now write filtered catalogs (branches) based on this catalog
     writeBranchCatalogs(localcatalogpath)
+
+
+def readXMLfile(filename):
+    '''Return dom from XML file or None'''
+    try:
+        dom = minidom.parse(filename)
+    except ExpatError:
+        print_stderr(
+            'Invalid XML in %s', filename)
+        return None
+    except IOError, err:
+        print_stderr(
+            'Error reading %s: %s', filename, err)
+        return None
+    return dom
+
+
+def writeXMLtoFile(node, path):
+    '''Write XML dom node to file'''
+    xml_string = node.toxml()
+    try:
+        fileobject = open(path, mode='w')
+        print >> fileobject, xml_string
+        fileobject.close()
+    except (OSError, IOError):
+        print_stderr('Couldn\'t write XML to %s' % path)
+
+
+def remove_config_data_attribute(product_list):
+    '''Wrapper to emulate previous behavior of remove-only only operation.'''
+    check_or_remove_config_data_attribute(product_list, remove_attr=True)
+
+
+def check_or_remove_config_data_attribute(product_list, remove_attr=False):
+    '''Loop through the type="config-data" attributes from the distribution
+    options for a list of products. Return a list of products that have
+    this attribute set or if `remove_attr` is specified then remove the
+    attribute from the distribution file.
+
+    This makes softwareupdate find and display updates like
+    XProtectPlistConfigData and Gatekeeper Configuration Data, which it
+    normally does not.'''
+    products = getProductInfo()
+    config_data_products = set()
+    for key in product_list:
+        if key in products:
+            if products[key].get('CatalogEntry'):
+                distributions = products[key]['CatalogEntry'].get(
+                    'Distributions', {})
+                for lang in distributions.keys():
+                    distPath = getLocalPathNameFromURL(
+                        products[key]['CatalogEntry']['Distributions'][lang])
+                    if not os.path.exists(distPath):
+                        continue
+                    dom = readXMLfile(distPath)
+                    if dom:
+                        found_config_data = False
+                        option_elements = (
+                            dom.getElementsByTagName('options') or [])
+                        for element in option_elements:
+                            if 'type' in element.attributes.keys():
+                                if (element.attributes['type'].value
+                                        == 'config-data'):
+                                    found_config_data = True
+                                    config_data_products.add(key)
+                                    if remove_attr:
+                                        element.removeAttribute('type')
+                        # done editing dom
+                        if found_config_data and remove_attr:
+                            try:
+                                writeXMLtoFile(dom, distPath)
+                            except (OSError, IOError):
+                                pass
+                            else:
+                                print_stdout('Updated dist: %s', distPath)
+                        elif not found_config_data:
+                            print_stdout('No config-data in %s', distPath)
+    return list(config_data_products)
 
 LOGFILE = None
 def main():
