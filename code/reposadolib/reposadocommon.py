@@ -504,11 +504,16 @@ def writeXMLtoFile(node, path):
 
 
 def remove_config_data_attribute(product_list):
+    check_or_remove_config_data_attribute(product_list, remove_attr=True)
+
+
+def check_or_remove_config_data_attribute(product_list, remove_attr=False):
     '''Remove the type="config-data" attribute from the distribution options for
     a product. This makes softwareupdate find and display updates like
     XProtectPlistConfigData and Gatekeeper Configuration Data, which it normally
     does not.'''
     products = getProductInfo()
+    config_data_products = set()
     for key in product_list:
         if key in products:
             if products[key].get('CatalogEntry'):
@@ -527,19 +532,20 @@ def remove_config_data_attribute(product_list):
                                 if (element.attributes['type'].value
                                         == 'config-data'):
                                     found_config_data = True
-                                    element.removeAttribute('type')
+                                    config_data_products.add(key)
+                                    if remove_attr:
+                                        element.removeAttribute('type')
                         # done editing dom
-                        if found_config_data:
+                        if found_config_data and remove_attr:
                             try:
                                 writeXMLtoFile(dom, distPath)
                             except (OSError, IOError):
                                 pass
                             else:
-                                print_stdout(
-                                    'Updated dist: %s', distPath)
-                        else:
-                            print_stdout(
-                                'No config-data in %s', distPath)
+                                print_stdout('Updated dist: %s', distPath)
+                        elif not found_config_data:
+                            print_stdout('No config-data in %s', distPath)
+    return list(config_data_products)
 
 LOGFILE = None
 def main():
