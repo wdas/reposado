@@ -522,6 +522,8 @@ def check_or_remove_config_data_attribute(product_list, remove_attr=False):
                 for lang in distributions.keys():
                     distPath = getLocalPathNameFromURL(
                         products[key]['CatalogEntry']['Distributions'][lang])
+                    if not os.path.exists(distPath):
+                        continue
                     dom = readXMLfile(distPath)
                     if dom:
                         found_config_data = False
