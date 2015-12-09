@@ -39,8 +39,6 @@ Apple Software Update server'''
 import optparse
 import os
 import shutil
-from xml.dom import minidom
-from xml.parsers.expat import ExpatError
 
 from reposadolib import reposadocommon
 
@@ -162,71 +160,6 @@ def print_info(key):
         reposadocommon.print_stdout(product.get('description'))
     else:
         reposadocommon.print_stdout('No product id %s found.', key)
-
-
-def readXMLfile(filename):
-    '''Return dom from XML file or None'''
-    try:
-        dom = minidom.parse(filename)
-    except ExpatError:
-        reposadocommon.print_stderr(
-            'Invalid XML in %s', filename)
-        return None
-    except IOError, err:
-        reposadocommon.print_stderr(
-            'Error reading %s: %s', filename, err)
-        return None
-    return dom
-
-
-def writeXMLtoFile(node, path):
-    '''Write XML dom node to file'''
-    xml_string = node.toxml()
-    try:
-        fileobject = open(path, mode='w')
-        print >> fileobject, xml_string
-        fileobject.close()
-    except (OSError, IOError):
-        reposadocommon.print_stderr('Couldn\'t write XML to %s' % path)
-
-
-def remove_config_data_attribute(product_list):
-    '''Remove the type="config-data" attribute from the distribution options for
-    a product. This makes softwareupdate find and display updates like
-    XProtectPlistConfigData and Gatekeeper Configuration Data, which it normally
-    does not.'''
-    products = reposadocommon.getProductInfo()
-    for key in product_list:
-        if key in products:
-            if products[key].get('CatalogEntry'):
-                distributions = products[key]['CatalogEntry'].get(
-                    'Distributions', {})
-                for lang in distributions.keys():
-                    distPath = reposadocommon.getLocalPathNameFromURL(
-                        products[key]['CatalogEntry']['Distributions'][lang])
-                    dom = readXMLfile(distPath)
-                    if dom:
-                        found_config_data = False
-                        option_elements = (
-                            dom.getElementsByTagName('options') or [])
-                        for element in option_elements:
-                            if 'type' in element.attributes.keys():
-                                if (element.attributes['type'].value
-                                        == 'config-data'):
-                                    found_config_data = True
-                                    element.removeAttribute('type')
-                        # done editing dom
-                        if found_config_data:
-                            try:
-                                writeXMLtoFile(dom, distPath)
-                            except (OSError, IOError):
-                                pass
-                            else:
-                                reposadocommon.print_stdout(
-                                    'Updated dist: %s', distPath)
-                        else:
-                            reposadocommon.print_stdout(
-                                'No config-data in %s', distPath)
 
 
 def print_dist(key):
@@ -755,7 +688,7 @@ def main():
     if options.remove_config_data:
         params = [options.remove_config_data]
         params.extend(arguments)
-        remove_config_data_attribute(params)
+        reposadocommon.remove_config_data_attribute(params)
 
 
 if __name__ == '__main__':

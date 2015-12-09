@@ -47,6 +47,7 @@ import time
 import urlparse
 import warnings
 from xml.parsers.expat import ExpatError
+from xml.dom import minidom
 
 def get_main_dir():
     '''Returns the directory name of the script or the directory name of the exe
@@ -474,6 +475,71 @@ def writeLocalCatalogs(applecatalogpath):
 
     # now write filtered catalogs (branches) based on this catalog
     writeBranchCatalogs(localcatalogpath)
+
+
+def readXMLfile(filename):
+    '''Return dom from XML file or None'''
+    try:
+        dom = minidom.parse(filename)
+    except ExpatError:
+        print_stderr(
+            'Invalid XML in %s', filename)
+        return None
+    except IOError, err:
+        print_stderr(
+            'Error reading %s: %s', filename, err)
+        return None
+    return dom
+
+
+def writeXMLtoFile(node, path):
+    '''Write XML dom node to file'''
+    xml_string = node.toxml()
+    try:
+        fileobject = open(path, mode='w')
+        print >> fileobject, xml_string
+        fileobject.close()
+    except (OSError, IOError):
+        print_stderr('Couldn\'t write XML to %s' % path)
+
+
+def remove_config_data_attribute(product_list):
+    '''Remove the type="config-data" attribute from the distribution options for
+    a product. This makes softwareupdate find and display updates like
+    XProtectPlistConfigData and Gatekeeper Configuration Data, which it normally
+    does not.'''
+    products = getProductInfo()
+    for key in product_list:
+        if key in products:
+            if products[key].get('CatalogEntry'):
+                distributions = products[key]['CatalogEntry'].get(
+                    'Distributions', {})
+                for lang in distributions.keys():
+                    distPath = getLocalPathNameFromURL(
+                        products[key]['CatalogEntry']['Distributions'][lang])
+                    dom = readXMLfile(distPath)
+                    if dom:
+                        found_config_data = False
+                        option_elements = (
+                            dom.getElementsByTagName('options') or [])
+                        for element in option_elements:
+                            if 'type' in element.attributes.keys():
+                                if (element.attributes['type'].value
+                                        == 'config-data'):
+                                    found_config_data = True
+                                    element.removeAttribute('type')
+                        # done editing dom
+                        if found_config_data:
+                            try:
+                                writeXMLtoFile(dom, distPath)
+                            except (OSError, IOError):
+                                pass
+                            else:
+                                print_stdout(
+                                    'Updated dist: %s', distPath)
+                        else:
+                            print_stdout(
+                                'No config-data in %s', distPath)
 
 LOGFILE = None
 def main():
