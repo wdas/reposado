@@ -504,14 +504,19 @@ def writeXMLtoFile(node, path):
 
 
 def remove_config_data_attribute(product_list):
+    '''Wrapper to emulate previous behavior of remove-only only operation.'''
     check_or_remove_config_data_attribute(product_list, remove_attr=True)
 
 
 def check_or_remove_config_data_attribute(product_list, remove_attr=False):
-    '''Remove the type="config-data" attribute from the distribution options for
-    a product. This makes softwareupdate find and display updates like
-    XProtectPlistConfigData and Gatekeeper Configuration Data, which it normally
-    does not.'''
+    '''Loop through the type="config-data" attributes from the distribution
+    options for a list of products. Return a list of products that have
+    this attribute set or if `remove_attr` is specified then remove the
+    attribute from the distribution file.
+
+    This makes softwareupdate find and display updates like
+    XProtectPlistConfigData and Gatekeeper Configuration Data, which it
+    normally does not.'''
     products = getProductInfo()
     config_data_products = set()
     for key in product_list:
