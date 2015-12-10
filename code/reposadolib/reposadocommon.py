@@ -508,7 +508,7 @@ def remove_config_data_attribute(product_list):
     check_or_remove_config_data_attribute(product_list, remove_attr=True)
 
 
-def check_or_remove_config_data_attribute(product_list, remove_attr=False):
+def check_or_remove_config_data_attribute(product_list, remove_attr=False, products=None):
     '''Loop through the type="config-data" attributes from the distribution
     options for a list of products. Return a list of products that have
     this attribute set or if `remove_attr` is specified then remove the
@@ -517,7 +517,8 @@ def check_or_remove_config_data_attribute(product_list, remove_attr=False):
     This makes softwareupdate find and display updates like
     XProtectPlistConfigData and Gatekeeper Configuration Data, which it
     normally does not.'''
-    products = getProductInfo()
+    if not products:
+        products = getProductInfo()
     config_data_products = set()
     for key in product_list:
         if key in products:
