@@ -1,0 +1,47 @@
+# Getting Started with Reposado
+
+What you need:
+
+- The Reposado tools
+- Python 2.5-2.7 with plistlib. (Reposado has been tested with Python 2.6, but should work with 2.5-2.7 as long as plistlib is available. plistlib was included as a Mac-specific library with Python 2.5, and for all platforms with Python 2.6.)
+- curl binary
+- A web server
+- Storage space for the catalogs and update packages. If you are replicating the update packages, you'll need approximately 120GB of space as of October 2012. The need for space grows as additional updates are released by Apple. If you are only replicating catalogs, you'll probably need less than 100MB of space, though the exact amount of space needed depends on the number of branch catalogs you create.
+
+1. Download the Reposado tools, typically by doing a git clone of the repo, or downloading the source from GitHub. The tools are in the code directory. The tools do not need to be any place in particular to operate; you may put them wherever you like.
+
+2. Create a directory in which to store replicated catalogs and updates, and another to store Reposado metadata. These may share a parent directory, like so:
+	
+        /Volumes/data/reposado/html
+        /Volumes/data/reposado/metadata
+Make sure you have enough space for the replicated catalogs and updates. Make sure these directories are writable by the user *repo_sync* will run as, and readable by the user your webserver runs as.
+
+3. Configure your web server to serve the contents of the updates root directory you created ("/Volumes/data/reposado/html" in the example above). If you are planning to replicate and serve the actual update packages as well as the catalogs, make note of the URL needed to access the updates root directory via HTTP. This will be the LocalCatalogURLBase when configuring Reposado in the next step.
+
+4. Configure Reposado by running:
+
+        repoutil --configure
+You'll be asked three questions:
+	
+	Path to store replicated catalogs and updates: 
+Path to store Reposado metadata: 
+Base URL for your local Software Update Service
+(Example: http://su.your.org -- leave empty if you are not replicating updates): 
+
+	Answer appropriately using your decisions in steps 2 and 3 above.
+See [reposado_preferences.md](./reposado_preferences.md) for more details on Reposado preferences.
+
+	NOTE: if you enter the paths by dragging folders into a Terminal window from the Finder, be aware that the Finder adds an extra space to the end of pathnames. Delete this space or your results may not be what you expect. You can always run *repoutil --configure* again to check and modify the configuration if needed.
+
+5. Run *repo_sync* to replicate update catalogs and (optionally) update packages to the UpdatesRootDir directory. The first time you do this it may take several hours to complete if you are replicating packages as well as catalogs.
+
+6. Test things so far by visiting a catalog URL in your browser. If http://su.myorg.com is the URL for the updates root directory you created earlier, then http://su.myorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog 
+is the CatalogURL for the Snow Leopard updates catalog. You should see a plist version of the updates catalog displayed in your browser.
+
+7. Next test: run softwareupdate on a client, again pointing it to your Catalog URL:
+
+	NOTE: the '--CatalogURL' option was removed from softwareupdate in 10.9 Mavericks
+
+        softwareupdate -l --CatalogURL "http://su.myorg.com/content/catalogs/others/index-leopard-snowleopard.merged-1.sucatalog"
+
+If there are no errors, you've successfully configured Reposado and successfully replicated Apple Software Updates.
