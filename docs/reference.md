@@ -164,7 +164,7 @@ You may add all cached products, including deprecated products to a branch catal
 	
 	repoutil --remove-product=PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME
 	                        
-	Remove one or more PRODUCT_IDs from catalog branch BRANCH_NAME.
+Remove one or more PRODUCT_IDs from catalog branch BRANCH_NAME.
 
 
 ### PURGING PRODUCTS ENTIRELY
