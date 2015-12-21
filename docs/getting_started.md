@@ -3,8 +3,8 @@
 What you need:
 
 - The Reposado tools
-- Python 2.5-2.7 with plistlib. (Reposado has been tested with Python 2.6, but should work with 2.5-2.7 as long as plistlib is available. plistlib was included as a Mac-specific library with Python 2.5, and for all platforms with Python 2.6.)
-- curl binary
+- Python 2.5-2.7 with *plistlib*. (Reposado has been tested with Python 2.6, but should work with 2.5-2.7 as long as *plistlib* is available. *plistlib* was included as a Mac-specific library with Python 2.5, and for all platforms with Python 2.6.)
+- *curl* binary
 - A web server
 - Storage space for the catalogs and update packages. If you are replicating the update packages, you'll need approximately 120GB of space as of October 2012. The need for space grows as additional updates are released by Apple. If you are only replicating catalogs, you'll probably need less than 100MB of space, though the exact amount of space needed depends on the number of branch catalogs you create.
 
