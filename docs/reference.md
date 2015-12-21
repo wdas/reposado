@@ -57,7 +57,11 @@ Example:
                         
 List deprecated updates. These are updates that are no longer available from Apple. 
 They may have been withdrawn, or have been superseded by newer versions. Example:
-<to be generated>
+
+	repoutil --deprecated
+	031-41757       Digital Camera RAW Compatibility Update            6.17       2015-10-19 ['testing'] (Deprecated)
+	031-34805       Safari                                             9.0.1      2015-10-21 ['testing'] (Deprecated)
+	zzzz031-36002   iTunes                                             12.3.1     2015-10-21 ['testing'] (Deprecated)
 
 
 ### LISTING AVAILABLE BRANCH CATALOGS
