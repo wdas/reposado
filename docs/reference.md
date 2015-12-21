@@ -26,7 +26,7 @@ Specify a log file to redirect all output to.
 	
 	repoutil --configure
 
-Configure key preferences for Reposado. Note this command does not allow you to edit all available Reposado preferences. See reposado_preferences.txt for more information.
+Configure key preferences for Reposado. Note this command does not allow you to edit all available Reposado preferences. See [reposado_preferences](./reposado_preferences.md) for more information.
 
 
 ### LISTING AVAILABLE PRODUCTS (UPDATES)
