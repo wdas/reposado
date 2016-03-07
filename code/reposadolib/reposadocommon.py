@@ -508,7 +508,8 @@ def remove_config_data_attribute(product_list):
     check_or_remove_config_data_attribute(product_list, remove_attr=True)
 
 
-def check_or_remove_config_data_attribute(product_list, remove_attr=False, products=None):
+def check_or_remove_config_data_attribute(
+        product_list, remove_attr=False, products=None, suppress_output=False):
     '''Loop through the type="config-data" attributes from the distribution
     options for a list of products. Return a list of products that have
     this attribute set or if `remove_attr` is specified then remove the
@@ -550,9 +551,11 @@ def check_or_remove_config_data_attribute(product_list, remove_attr=False, produ
                             except (OSError, IOError):
                                 pass
                             else:
-                                print_stdout('Updated dist: %s', distPath)
+                                if not suppress_output:
+                                    print_stdout('Updated dist: %s', distPath)
                         elif not found_config_data:
-                            print_stdout('No config-data in %s', distPath)
+                            if not suppress_output:
+                                print_stdout('No config-data in %s', distPath)
     return list(config_data_products)
 
 LOGFILE = None
