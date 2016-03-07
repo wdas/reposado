@@ -14,24 +14,30 @@ What you need:
 	
         /Volumes/data/reposado/html
         /Volumes/data/reposado/metadata
+
 Make sure you have enough space for the replicated catalogs and updates. Make sure these directories are writable by the user `repo_sync` will run as, and readable by the user your webserver runs as.
 
 3. Configure your web server to serve the contents of the updates root directory you created ("/Volumes/data/reposado/html" in the example above). If you are planning to replicate and serve the actual update packages as well as the catalogs, make note of the URL needed to access the updates root directory via HTTP. This will be the LocalCatalogURLBase when configuring Reposado in the next step.
 
 4. Configure Reposado by running:
-
-        `repoutil --configure`
-You'll be asked three questions:
-	
-	Path to store replicated catalogs and updates: 
-Path to store Reposado metadata: 
-Base URL for your local Software Update Service
-(Example: http://su.your.org -- leave empty if you are not replicating updates): 
-
-	Answer appropriately using your decisions in steps 2 and 3 above.
-See [reposado_preferences.md](./reposado_preferences.md) for more details on Reposado preferences.
-
-	NOTE: if you enter the paths by dragging folders into a Terminal window from the Finder, be aware that the Finder adds an extra space to the end of pathnames. Delete this space or your results may not be what you expect. You can always run `repoutil --configure` again to check and modify the configuration if needed.
+   
+   ```
+   repoutil --configure
+   ```
+   
+   You'll be asked three questions:
+   
+   ```
+   Path to store replicated catalogs and updates: 
+   Path to store Reposado metadata: 
+   Base URL for your local Software Update Service
+   (Example: http://su.your.org -- leave empty if you are not replicating updates): 
+   ```
+   
+   Answer appropriately using your decisions in steps 2 and 3 above.
+   See [reposado_preferences.md](./reposado_preferences.md) for more details on Reposado preferences.
+   
+   NOTE: if you enter the paths by dragging folders into a Terminal window from the Finder, be aware that the Finder adds an extra space to the end of pathnames. Delete this space or your results may not be what you expect. You can always run `repoutil --configure` again to check and modify the configuration if needed.
 
 5. Run `repo_sync` to replicate update catalogs and (optionally) update packages to the UpdatesRootDir directory. The first time you do this it may take several hours to complete if you are replicating packages as well as catalogs.
 
@@ -39,14 +45,16 @@ See [reposado_preferences.md](./reposado_preferences.md) for more details on Rep
 is the CatalogURL for the El Capitan updates catalog. You should see a plist version of the updates catalog displayed in your browser.
 
 7. Next test: run `softwareupdate` on a client, again pointing it to your Catalog URL:
-
-	```
-	softwareupdate --set-catalog "http://su.myorg.com/content/catalogs/others/index-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog"
-	softwareupdate -l
-	```
-	
-	NOTE: commands are different in versions of OS X prior to 10.9 Mavericks:
-
-        softwareupdate -l --CatalogURL "http://su.myorg.com/content/catalogs/others/index-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog"
-
-If there are no errors, you've successfully configured Reposado and successfully replicated Apple Software Updates.
+   
+   ```
+   softwareupdate --set-catalog "http://su.myorg.com/content/catalogs/others/index-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog"
+   softwareupdate -l
+   ```
+   
+   NOTE: commands are different in versions of OS X prior to 10.9 Mavericks:
+   
+   ```
+   softwareupdate -l --CatalogURL "http://su.myorg.com/content/catalogs/others/index-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog"
+   ```
+   
+   If there are no errors, you've successfully configured Reposado and successfully replicated Apple Software Updates.
