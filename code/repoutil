@@ -576,6 +576,31 @@ def configure():
     reposadocommon.configure_prefs()
 
 
+def remove_config_data(product_ids):
+    '''Remove the config-data attribute from product dist files'''
+    if len(product_ids) == 1 and product_ids[0] == 'all':
+        '''Removes the config-data attribute from all products'''
+        reposadocommon.print_stdout(
+            'Checking all products for config-data attributes...')
+        product_info = reposadocommon.getProductInfo()
+        product_list = product_info.keys()
+        updated_products = reposadocommon.check_or_remove_config_data_attribute(
+            product_list, remove_attr=True, products=product_info,
+            suppress_output=True)
+        if updated_products:
+            reposadocommon.print_stdout(
+                'config-data attribute removed from:')
+            for key in updated_products:
+                reposadocommon.print_stdout(
+                    '    %s: %s-%s',
+                    key, product_info[key]['title'], product_info[key]['version'])
+        else:
+            reposadocommon.print_stdout(
+                'No products with config-data attributes found.')
+    else:
+        remove_config_data_attribute(product_ids)
+
+
 def main():
     '''Main command processing'''
 
@@ -688,7 +713,7 @@ def main():
     if options.remove_config_data:
         params = [options.remove_config_data]
         params.extend(arguments)
-        reposadocommon.remove_config_data_attribute(params)
+        remove_config_data(params)
 
 
 if __name__ == '__main__':

@@ -776,27 +776,6 @@ def sync(fast_scan=False, download_packages=True):
     reposadocommon.print_stdout('repo_sync run ended')
 
 
-def remove_config_data():
-    '''Removes the config-data attribute from all products'''
-    reposadocommon.print_stdout(
-        'Checking all products for config-data attributes...')
-    product_info = reposadocommon.getProductInfo()
-    product_list = product_info.keys()
-    updated_products = reposadocommon.check_or_remove_config_data_attribute(
-        product_list, remove_attr=True, products=product_info,
-        suppress_output=True)
-    if updated_products:
-        reposadocommon.print_stdout(
-            'config-data attribute removed from:')
-        for key in updated_products:
-            reposadocommon.print_stdout(
-                '    %s: %s-%s',
-                key, product_info[key]['title'], product_info[key]['version'])
-    else:
-        reposadocommon.print_stdout(
-            'No products with config-data attributes found.')
-
-
 def main():
     '''Main command processing'''
     parser = optparse.OptionParser()
@@ -805,9 +784,6 @@ def main():
                       help='Log all output to LOGFILE. No output to STDOUT.')
     parser.add_option('--recheck', action='store_true',
                       help='Recheck already downloaded packages for changes.')
-    parser.add_option('--remove-config-data', action='store_true',
-                      help='After sync, remove config-data attribute from all'
-                           'products.')
 
     options, unused_arguments = parser.parse_args()
     if reposadocommon.validPreferences():
@@ -826,8 +802,6 @@ def main():
 
         sync(fast_scan=(not options.recheck),
              download_packages=download_packages)
-        if options.remove_config_data:
-            remove_config_data()
 
 
 if __name__ == '__main__':
