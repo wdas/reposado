@@ -26,7 +26,7 @@ Specify a log file to redirect all output to.
 	
 	repoutil --configure
 
-Configure key preferences for Reposado. Note this command does not allow you to edit all available Reposado preferences. See reposado_preferences.txt for more information.
+Configure key preferences for Reposado. Note this command does not allow you to edit all available Reposado preferences. See [reposado_preferences](./reposado_preferences.md) for more information.
 
 
 ### LISTING AVAILABLE PRODUCTS (UPDATES)
@@ -57,7 +57,11 @@ Example:
                         
 List deprecated updates. These are updates that are no longer available from Apple. 
 They may have been withdrawn, or have been superseded by newer versions. Example:
-<to be generated>
+
+	repoutil --deprecated
+	031-41757       Digital Camera RAW Compatibility Update            6.17       2015-10-19 ['testing'] (Deprecated)
+	031-34805       Safari                                             9.0.1      2015-10-21 ['testing'] (Deprecated)
+	zzzz031-36002   iTunes                                             12.3.1     2015-10-21 ['testing'] (Deprecated)
 
 
 ### LISTING AVAILABLE BRANCH CATALOGS
@@ -164,7 +168,7 @@ You may add all cached products, including deprecated products to a branch catal
 	
 	repoutil --remove-product=PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME
 	                        
-	Remove one or more PRODUCT_IDs from catalog branch BRANCH_NAME.
+Remove one or more PRODUCT_IDs from catalog branch BRANCH_NAME.
 
 
 ### PURGING PRODUCTS ENTIRELY

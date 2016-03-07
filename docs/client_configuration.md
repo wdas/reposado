@@ -77,7 +77,8 @@ Mavericks clients should use a CatalogURL of the form:
 Branch CatalogURLs take the form of:
 
     http://su.yourorg.com/content/catalogs/others/index-10.9-mountainlion-lion-snowleopard-leopard.merged-1_<branchname>.sucatalog
-    
+
+
 ## Yosemite Clients
 
 Yosemite clients should use a CatalogURL of the form:
@@ -87,6 +88,7 @@ Yosemite clients should use a CatalogURL of the form:
 Branch CatalogURLs take the form of:
 
     http://su.yourorg.com/content/catalogs/others/index-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1_<branchname>.sucatalog
+
 
 ## El Capitan Clients
 
