@@ -47,6 +47,6 @@ is the CatalogURL for the El Capitan updates catalog. You should see a plist ver
 	
 	NOTE: commands are different in versions of OS X prior to 10.9 Mavericks:
 
-        `softwareupdate -l --CatalogURL "http://su.myorg.com/content/catalogs/others/index-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog"`
+        softwareupdate -l --CatalogURL "http://su.myorg.com/content/catalogs/others/index-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog"
 
 If there are no errors, you've successfully configured Reposado and successfully replicated Apple Software Updates.
