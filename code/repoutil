@@ -598,7 +598,7 @@ def remove_config_data(product_ids):
             reposadocommon.print_stdout(
                 'No products with config-data attributes found.')
     else:
-        remove_config_data_attribute(product_ids)
+        reposadocommon.remove_config_data_attribute(product_ids)
 
 
 def main():
