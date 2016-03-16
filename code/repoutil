@@ -284,6 +284,16 @@ def list_deprecated(sort_order='date', reverse_sort=False):
     list_products(sort_order, reverse_sort, list_of_productids)
 
 
+def list_config_data(sort_order='date', reverse_sort=False):
+    '''Find updates with \'type="config-data"\' attribute'''
+    product_info = reposadocommon.getProductInfo()
+    product_list = product_info.keys()
+    matching_products = reposadocommon.check_or_remove_config_data_attribute(
+        product_list, remove_attr=False, products=product_info,
+        suppress_output=True)
+    list_products(sort_order, reverse_sort, matching_products)
+
+
 def list_products(sort_order='date', reverse_sort=False,
                   list_of_productids=None):
     '''Prints a list of Software Update products'''
@@ -615,6 +625,8 @@ def main():
                  help="""List available updates""")
     p.add_option('--deprecated', action='store_true',
                  help="""List deprecated updates""")
+    p.add_option('--config-data', action='store_true',
+                 help="""List updates with 'type="config-data"' attribute""")
     p.add_option('--sort', metavar='SORT_ORDER', default='date',
                  help="""Sort list.
                  Available sort orders are: date, title, id""")
@@ -681,6 +693,8 @@ def main():
         list_products(sort_order=options.sort, reverse_sort=options.reverse)
     if options.deprecated:
         list_deprecated(sort_order=options.sort, reverse_sort=options.reverse)
+    if options.config_data:
+        list_config_data(sort_order=options.sort, reverse_sort=options.reverse)
     if options.branch:
         list_branch(options.branch, sort_order=options.sort,
                     reverse_sort=options.reverse)
