@@ -358,6 +358,9 @@ def add_product_to_branch(parameters):
     products = reposadocommon.getProductInfo()
     if 'all' in product_id_list:
         product_id_list = products.keys()
+    elif 'non-deprecated' in product_id_list:
+        product_id_list = [key for key in products.keys()
+                           if products[key].get('AppleCatalogs')]
 
     for product_id in product_id_list:
         if not product_id in products:
@@ -405,8 +408,13 @@ def remove_product_from_branch(parameters):
     branch_name = parameters[-1]
     product_id_list = parameters[0:-1]
 
-    # remove all duplicate product ids
-    product_id_list = list(set(product_id_list))
+    if 'deprecated' in product_id_list:
+        products = reposadocommon.getProductInfo()
+        product_id_list = [key for key in products.keys()
+                           if not products[key].get('AppleCatalogs')]
+    else:
+        # remove all duplicate product ids
+        product_id_list = list(set(product_id_list))
 
     catalog_branches = reposadocommon.getCatalogBranches()
     if not branch_name in catalog_branches:
