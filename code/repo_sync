@@ -343,8 +343,9 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
 
     while True:
         if not donewithheaders:
-            info = proc.stdout.readline().strip('\r\n')
+            info = proc.stdout.readline()
             if info:
+                info = info.rstrip('\r\n')
                 if info.startswith('HTTP/'):
                     header['http_result_code'] = info.split(None, 2)[1]
                     header['http_result_description'] = info.split(None, 2)[2]
