@@ -284,6 +284,14 @@ def list_deprecated(sort_order='date', reverse_sort=False):
     list_products(sort_order, reverse_sort, list_of_productids)
 
 
+def list_non_deprecated(sort_order='date', reverse_sort=False):
+    '''Find products that are referenced in Apple\'s catalogs'''
+    products = reposadocommon.getProductInfo()
+    list_of_productids = [key for key in products.keys()
+                          if products[key].get('AppleCatalogs')]
+    list_products(sort_order, reverse_sort, list_of_productids)
+
+
 def list_products(sort_order='date', reverse_sort=False,
                   list_of_productids=None):
     '''Prints a list of Software Update products'''
@@ -623,6 +631,8 @@ def main():
                  help="""List available updates""")
     p.add_option('--deprecated', action='store_true',
                  help="""List deprecated updates""")
+    p.add_option('--non-deprecated', action='store_true',
+                 help="""List non-deprecated updates""")
     p.add_option('--sort', metavar='SORT_ORDER', default='date',
                  help="""Sort list.
                  Available sort orders are: date, title, id""")
@@ -689,6 +699,8 @@ def main():
         list_products(sort_order=options.sort, reverse_sort=options.reverse)
     if options.deprecated:
         list_deprecated(sort_order=options.sort, reverse_sort=options.reverse)
+    if options.non_deprecated:
+        list_non_deprecated(sort_order=options.sort, reverse_sort=options.reverse)
     if options.branch:
         list_branch(options.branch, sort_order=options.sort,
                     reverse_sort=options.reverse)
