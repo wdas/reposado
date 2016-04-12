@@ -63,6 +63,19 @@ They may have been withdrawn, or have been superseded by newer versions. Example
 	031-34805       Safari                                             9.0.1      2015-10-21 ['testing'] (Deprecated)
 	zzzz031-36002   iTunes                                             12.3.1     2015-10-21 ['testing'] (Deprecated)
 
+### LISTING CRITICAL UPDATES
+	
+	repoutil --config-data
+                        
+List critical updates. These are updates that are marked as "config-data" by Apple. 
+Depending on the setting on the client, those updates can be automatically installed without 
+any user interaction.
+
+	repoutil --config-data
+	031-12170       Gatekeeper Configuration Data                      1.0        2015-02-09 ['testing'] 
+	031-38723       XProtectPlistConfigData                            1.0        2015-10-19 [] (Deprecated)
+	031-52942       XProtectPlistConfigData                            1.0        2016-03-05 ['testing'] 
+
 
 ### LISTING AVAILABLE BRANCH CATALOGS
 	
