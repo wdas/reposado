@@ -54,8 +54,9 @@ Example:
 ### LISTING DEPRECATED UPDATES
 	
 	repoutil --deprecated
+	repoutil --non-deprecated
                         
-List deprecated updates. These are updates that are no longer available from Apple. 
+List deprecated or non-deprecated updates. Deprecated products are updates that are no longer available from Apple. 
 They may have been withdrawn, or have been superseded by newer versions. Example:
 
 	repoutil --deprecated
@@ -172,8 +173,9 @@ Prints detailed info on a specific update. Example:
 	repoutil --add=PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME
                         
 Add one or more PRODUCT_IDs to catalog branch BRANCH_NAME.
-You may add all cached products, including deprecated products to a branch catalog by specifying 'all':
+You may add all cached products, optionally including deprecated products to a branch catalog by specifying 'non-deprecated' or 'all':
 
+	repoutil --add-product non-deprecated BRANCH_NAME
 	repoutil --add-product all BRANCH_NAME
 
 
@@ -181,7 +183,9 @@ You may add all cached products, including deprecated products to a branch catal
 	
 	repoutil --remove-product=PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME
 	                        
-Remove one or more PRODUCT_IDs from catalog branch BRANCH_NAME.
+Remove one or more PRODUCT_IDs from catalog branch BRANCH_NAME. You may remove all deprecated products from a branch by specifying 'deprecated':
+
+	repoutil --remove-product deprecated BRANCH_NAME
 
 
 ### PURGING PRODUCTS ENTIRELY

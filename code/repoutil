@@ -284,6 +284,14 @@ def list_deprecated(sort_order='date', reverse_sort=False):
     list_products(sort_order, reverse_sort, list_of_productids)
 
 
+def list_non_deprecated(sort_order='date', reverse_sort=False):
+    '''Find products that are referenced in Apple\'s catalogs'''
+    products = reposadocommon.getProductInfo()
+    list_of_productids = [key for key in products.keys()
+                          if products[key].get('AppleCatalogs')]
+    list_products(sort_order, reverse_sort, list_of_productids)
+
+
 def list_config_data(sort_order='date', reverse_sort=False):
     '''Find updates with \'type="config-data"\' attribute'''
     product_info = reposadocommon.getProductInfo()
@@ -368,6 +376,9 @@ def add_product_to_branch(parameters):
     products = reposadocommon.getProductInfo()
     if 'all' in product_id_list:
         product_id_list = products.keys()
+    elif 'non-deprecated' in product_id_list:
+        product_id_list = [key for key in products.keys()
+                           if products[key].get('AppleCatalogs')]
 
     for product_id in product_id_list:
         if not product_id in products:
@@ -415,15 +426,20 @@ def remove_product_from_branch(parameters):
     branch_name = parameters[-1]
     product_id_list = parameters[0:-1]
 
-    # remove all duplicate product ids
-    product_id_list = list(set(product_id_list))
-
     catalog_branches = reposadocommon.getCatalogBranches()
     if not branch_name in catalog_branches:
         reposadocommon.print_stderr(
             'Catalog branch %s doesn\'t exist!', branch_name)
         return
+
     products = reposadocommon.getProductInfo()
+    if 'deprecated' in product_id_list:
+        product_id_list = [key for key in catalog_branches[branch_name]
+                           if not products[key].get('AppleCatalogs')]
+    else:
+        # remove all duplicate product ids
+        product_id_list = list(set(product_id_list))
+
     for product_id in product_id_list:
         if product_id in products:
             title = products[product_id].get('title')
@@ -625,6 +641,8 @@ def main():
                  help="""List available updates""")
     p.add_option('--deprecated', action='store_true',
                  help="""List deprecated updates""")
+    p.add_option('--non-deprecated', action='store_true',
+                 help="""List non-deprecated updates""")
     p.add_option('--config-data', action='store_true',
                  help="""List updates with 'type="config-data"' attribute""")
     p.add_option('--sort', metavar='SORT_ORDER', default='date',
@@ -693,6 +711,8 @@ def main():
         list_products(sort_order=options.sort, reverse_sort=options.reverse)
     if options.deprecated:
         list_deprecated(sort_order=options.sort, reverse_sort=options.reverse)
+    if options.non_deprecated:
+        list_non_deprecated(sort_order=options.sort, reverse_sort=options.reverse)
     if options.config_data:
         list_config_data(sort_order=options.sort, reverse_sort=options.reverse)
     if options.branch:
