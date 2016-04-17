@@ -380,7 +380,9 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
 
     retcode = proc.poll()
     if retcode:
-        curlerr = proc.stderr.read().rstrip('\n').split(None, 2)[2]
+        curlerr = proc.stderr.read().rstrip('\n')
+        if curlerr:
+            curlerr = curlerr.split(None, 2)[2]
         if os.path.exists(tempdownloadpath):
             if (not resume) or (retcode == 33):
                 # 33 means server doesn't support range requests
