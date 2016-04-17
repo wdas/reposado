@@ -338,26 +338,29 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
 
     targetsize = 0
     downloadedpercent = -1
-    donewithheaders = False
-    printed_message = False
 
     while True:
-        if not donewithheaders:
-            info = proc.stdout.readline()
-            if info:
-                info = info.rstrip('\r\n')
-                if info.startswith('HTTP/'):
-                    header['http_result_code'] = info.split(None, 2)[1]
-                    header['http_result_description'] = info.split(None, 2)[2]
-                elif ': ' in info:
-                    part = info.split(None, 1)
+        line = proc.stdout.readline()
+        if line:
+            line_stripped = line.rstrip('\r\n')
+            if line_stripped:
+                line = line_stripped
+
+                if line.startswith('HTTP/'):
+                    header['http_result_code'] = line.split(None, 2)[1]
+                    header['http_result_description'] = line.split(None, 2)[2]
+                elif ': ' in line:
+                    part = line.split(None, 1)
                     fieldname = part[0].rstrip(':').lower()
                     header[fieldname] = part[1]
             else:
-                # we got an empty line; end of headers (or curl exited)
-                donewithheaders = True
+                # "empty" line, but not end of output. likely end of headers
+                # for a given HTTP result section
                 try:
                     targetsize = int(header.get('content-length'))
+                    if targetsize and header.get('http_result_code').startswith('2'):
+                        reposadocommon.print_stdout('Downloading %s bytes from %s...',
+                                                    targetsize, url)
                 except (ValueError, TypeError):
                     targetsize = 0
                 if header.get('http_result_code') == '206':
@@ -372,14 +375,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
                         except (ValueError, TypeError):
                             targetsize = 0
 
-        elif targetsize and header.get('http_result_code').startswith('2'):
-            if not printed_message:
-                printed_message = True
-                reposadocommon.print_stdout('Downloading %s bytes from %s...',
-                                            targetsize, url)
-            time.sleep(0.1)
-
-        if proc.poll() != None:
+        elif proc.poll() != None:
             break
 
     retcode = proc.poll()
