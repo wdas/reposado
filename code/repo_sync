@@ -410,6 +410,18 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
             return header
         elif http_result == '304':
             return header
+        elif not temp_download_exists and \
+                http_result == '200' and \
+                os.path.isfile(destinationpath) and \
+                (not (targetsize and (targetsize != \
+                 os.path.getsize(destinationpath)))):
+            # curl condition where even if a 200 response is returned there
+            # is no body downloaded. curl bug report here:
+            # http://curl.haxx.se/bug/view.cgi?id=2565128
+            reposadocommon.print_stderr(
+                'WARNING: No body provided; assuming already downloaded for %s',
+                destinationpath)
+            return header
         else:
             # there was a download error of some sort; clean all relevant
             # downloads that may be in a bad state.
