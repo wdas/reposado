@@ -1,4 +1,2 @@
-
-code/preferences.plist.saved
-
-code/preserved.plist
+*.pyc
+code/preferences.plist
