@@ -410,14 +410,29 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
             return header
         elif http_result == '304':
             return header
-        elif not temp_download_exists and \
-                http_result == '200' and \
-                os.path.isfile(destinationpath) and \
-                (not (targetsize and (targetsize != \
-                 os.path.getsize(destinationpath)))):
-            # curl condition where even if a 200 response is returned there
-            # is no body downloaded. curl bug report here:
-            # http://curl.haxx.se/bug/view.cgi?id=2565128
+        elif (not temp_download_exists and
+            http_result == '200' and
+            os.path.isfile(destinationpath) and
+            (not (targetsize and (targetsize != os.path.getsize(destinationpath))))):
+            # The above comparison tries to check that a) no body content was
+            # delivered, b) the HTTP result was 200, c) there is an existing
+            # download already, and d) [if the there was a Content-Length
+            # returned by the server] that the file sizes match. The logic is
+            # reversed with a 'not' in step d) to return True if the sizes
+            # match or there is no Content-Length.
+
+            # This is a test for an edge case where curl does not download
+            # body content even if the server returned a 200 response. This
+            # happens when curl is given the 'time-cond' option (which sends
+            # the HTTP header If-Modified-Since to the server) and the server
+            # responds with a 200 response but curl terminates the connection
+            # before any body content is transferred. I.e. curl goes above
+            # and beyond sending an If-Modified-Since and actually compares
+            # the Last-Modified header returned to it itself to make a
+            # decision whether to download the document body.
+
+            # See curl issue report here:
+            # https://sourceforge.net/p/curl/bugs/806/
             reposadocommon.print_stderr(
                 'WARNING: No body provided; assuming already downloaded for %s',
                 destinationpath)
