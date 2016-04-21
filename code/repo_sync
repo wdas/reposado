@@ -207,11 +207,11 @@ def parseSUdist(filename, debug=False):
                             if pkg_name:
                                 pkgs[pkg_id]['name'] = pkg_name
                         if 'onConclusion' in pkg.attributes.keys():
-                            pkgs[pkg_id]['RestartAction'] = \
-                                pkg.attributes['onConclusion'].value
+                            pkgs[pkg_id]['RestartAction'] = (
+                                pkg.attributes['onConclusion'].value)
                         if 'version' in pkg.attributes.keys():
-                            pkgs[pkg_id]['version'] = \
-                                pkg.attributes['version'].value
+                            pkgs[pkg_id]['version'] = (
+                                pkg.attributes['version'].value)
 
     if debug:
         print 'su_choice: %s' % su_choice
@@ -358,9 +358,10 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
                 # for a given HTTP result section
                 try:
                     targetsize = int(header.get('content-length'))
-                    if targetsize and header.get('http_result_code').startswith('2'):
-                        reposadocommon.print_stdout('Downloading %s bytes from %s...',
-                                                    targetsize, url)
+                    if (targetsize and
+                            header.get('http_result_code').startswith('2')):
+                        reposadocommon.print_stdout(
+                            'Downloading %s bytes from %s...', targetsize, url)
                 except (ValueError, TypeError):
                     targetsize = 0
                 if header.get('http_result_code') == '206':
@@ -392,9 +393,9 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
     else:
         temp_download_exists = os.path.isfile(tempdownloadpath)
         http_result = header.get('http_result_code')
-        if downloadedpercent != 100 and \
-            http_result.startswith('2') and \
-            temp_download_exists:
+        if (downloadedpercent != 100 and
+                http_result.startswith('2') and
+                temp_download_exists):
             downloadedsize = os.path.getsize(tempdownloadpath)
             if downloadedsize >= targetsize:
                 os_rename(tempdownloadpath, destinationpath)
@@ -411,9 +412,10 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
         elif http_result == '304':
             return header
         elif (not temp_download_exists and
-            http_result == '200' and
-            os.path.isfile(destinationpath) and
-            (not (targetsize and (targetsize != os.path.getsize(destinationpath))))):
+              http_result == '200' and
+              os.path.isfile(destinationpath) and
+              (not (targetsize and
+                    (targetsize != os.path.getsize(destinationpath))))):
             # The above comparison tries to check that a) no body content was
             # delivered, b) the HTTP result was 200, c) there is an existing
             # download already, and d) [if the there was a Content-Length
@@ -598,9 +600,9 @@ def getPreferredLocalization(list_of_localizations):
             if language in list_of_localizations:
                 return language
     else:
-        preferred_langs = \
+        preferred_langs = (
             NSBundle.preferredLocalizationsFromArray_forPreferences_(
-                list_of_localizations, None)
+                list_of_localizations, None))
         if preferred_langs:
             return preferred_langs[0]
 
@@ -640,8 +642,8 @@ def sync(fast_scan=False, download_packages=True):
     replicated_products = []
 
     for catalog_url in catalog_urls:
-        localcatalogpath = \
-            reposadocommon.getLocalPathNameFromURL(catalog_url) + '.apple'
+        localcatalogpath = (
+            reposadocommon.getLocalPathNameFromURL(catalog_url) + '.apple')
         if os.path.exists(localcatalogpath):
             archiveCatalog(localcatalogpath)
         try:
@@ -758,12 +760,9 @@ def sync(fast_scan=False, download_packages=True):
                     products[product_key]['title'] = dist['title']
                     products[product_key]['version'] = dist['version']
                     products[product_key]['size'] = str(size)
-                    products[product_key]['description'] = \
-                        dist['description']
-                    products[product_key]['PostDate'] = \
-                        product['PostDate']
-                    products[product_key]['pkg_refs'] = \
-                        dist['pkg_refs']
+                    products[product_key]['description'] = dist['description']
+                    products[product_key]['PostDate'] = product['PostDate']
+                    products[product_key]['pkg_refs'] = dist['pkg_refs']
 
                     # if we got this far, we've replicated the product data
                     replicated_products.append(product_key)
@@ -785,8 +784,8 @@ def sync(fast_scan=False, download_packages=True):
                     # fixing a mistake; disappearing from all catalogs means
                     # an item is deprecated.)
                     if products[product_key]['AppleCatalogs']:
-                        products[product_key]['OriginalAppleCatalogs'] = \
-                            products[product_key]['AppleCatalogs']
+                        products[product_key]['OriginalAppleCatalogs'] = (
+                            products[product_key]['AppleCatalogs'])
 
         # record products we've successfully downloaded
         reposadocommon.writeDownloadStatus(replicated_products)
