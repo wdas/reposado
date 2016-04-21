@@ -261,17 +261,6 @@ class CurlDownloadError(Exception):
     pass
 
 
-def sizeof_fmt(num, suffix='B'):
-    # shamelessly borrowed the most Pythonic-looking example from here:
-    # http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
-    # thanks to Fred Cirera
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
-        if abs(num) < 1024.0:
-            return "%3.1f %s%s" % (num, unit, suffix)
-        num /= 1024.0
-    return "%.1f %s%s" % (num, 'Yi', suffix)
-
-
 def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
     """Gets an HTTP or HTTPS URL and stores it in
     destination path. Returns a dictionary of headers, which includes
@@ -372,7 +361,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
                     if (targetsize and
                             header.get('http_result_code').startswith('2')):
                         if reposadocommon.pref('HumanReadableSizes'):
-                            printed_size = sizeof_fmt(targetsize)
+                            printed_size = reposadocommon.humanReadable(targetsize)
                         else:
                             printed_size = str(targetsize) + ' bytes'
                         reposadocommon.print_stdout(
