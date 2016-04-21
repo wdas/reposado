@@ -94,7 +94,7 @@ The following keys are optional and may be defined in preferences.plist for spec
 
 - HumanReadableSizes
 
-	Enable human-readable file sizes in download messages e.g. KiB, MiB.
+	Enable human-readable file sizes in download messages e.g. KB, MB.
 
 	Example:
 
