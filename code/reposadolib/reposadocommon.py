@@ -236,16 +236,12 @@ def humanReadable(size_in_bytes):
         size_in_bytes = int(size_in_bytes)
     except ValueError:
         size_in_bytes = 0
-    units = [(" bytes", 2**10, int),
-             (" KiB", 2**20, float),
-             (" MiB", 2**30, float),
-             (" GiB", 2**40, float),
-             (" TiB", 2**50, float)]
-    for suffix, limit, cast_unit in units:
+    units = [(" KB", 2**20), (" MB", 2**30), (" GB", 2**40), (" TB", 2**50)]
+    for suffix, limit in units:
         if size_in_bytes > limit:
             continue
         else:
-            return str(cast_unit(round(size_in_bytes/float(limit/2**10), 1))) + suffix
+            return str(round(size_in_bytes/float(limit/2**10), 1)) + suffix
 
 
 def writeDataToPlist(data, filename):
