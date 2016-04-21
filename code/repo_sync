@@ -338,26 +338,29 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
 
     targetsize = 0
     downloadedpercent = -1
-    donewithheaders = False
-    printed_message = False
 
     while True:
-        if not donewithheaders:
-            info = proc.stdout.readline()
-            if info:
-                info = info.rstrip('\r\n')
-                if info.startswith('HTTP/'):
-                    header['http_result_code'] = info.split(None, 2)[1]
-                    header['http_result_description'] = info.split(None, 2)[2]
-                elif ': ' in info:
-                    part = info.split(None, 1)
+        line = proc.stdout.readline()
+        if line:
+            line_stripped = line.rstrip('\r\n')
+            if line_stripped:
+                line = line_stripped
+
+                if line.startswith('HTTP/'):
+                    header['http_result_code'] = line.split(None, 2)[1]
+                    header['http_result_description'] = line.split(None, 2)[2]
+                elif ': ' in line:
+                    part = line.split(None, 1)
                     fieldname = part[0].rstrip(':').lower()
                     header[fieldname] = part[1]
             else:
-                # we got an empty line; end of headers (or curl exited)
-                donewithheaders = True
+                # "empty" line, but not end of output. likely end of headers
+                # for a given HTTP result section
                 try:
                     targetsize = int(header.get('content-length'))
+                    if targetsize and header.get('http_result_code').startswith('2'):
+                        reposadocommon.print_stdout('Downloading %s bytes from %s...',
+                                                    targetsize, url)
                 except (ValueError, TypeError):
                     targetsize = 0
                 if header.get('http_result_code') == '206':
@@ -372,19 +375,14 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
                         except (ValueError, TypeError):
                             targetsize = 0
 
-        elif targetsize and header.get('http_result_code').startswith('2'):
-            if not printed_message:
-                printed_message = True
-                reposadocommon.print_stdout('Downloading %s bytes from %s...',
-                                            targetsize, url)
-            time.sleep(0.1)
-
-        if proc.poll() != None:
+        elif proc.poll() != None:
             break
 
     retcode = proc.poll()
     if retcode:
-        curlerr = proc.stderr.read().rstrip('\n').split(None, 2)[2]
+        curlerr = proc.stderr.read().rstrip('\n')
+        if curlerr:
+            curlerr = curlerr.split(None, 2)[2]
         if os.path.exists(tempdownloadpath):
             if (not resume) or (retcode == 33):
                 # 33 means server doesn't support range requests
@@ -411,6 +409,33 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
             os_rename(tempdownloadpath, destinationpath)
             return header
         elif http_result == '304':
+            return header
+        elif (not temp_download_exists and
+            http_result == '200' and
+            os.path.isfile(destinationpath) and
+            (not (targetsize and (targetsize != os.path.getsize(destinationpath))))):
+            # The above comparison tries to check that a) no body content was
+            # delivered, b) the HTTP result was 200, c) there is an existing
+            # download already, and d) [if the there was a Content-Length
+            # returned by the server] that the file sizes match. The logic is
+            # reversed with a 'not' in step d) to return True if the sizes
+            # match or there is no Content-Length.
+
+            # This is a test for an edge case where curl does not download
+            # body content even if the server returned a 200 response. This
+            # happens when curl is given the 'time-cond' option (which sends
+            # the HTTP header If-Modified-Since to the server) and the server
+            # responds with a 200 response but curl terminates the connection
+            # before any body content is transferred. I.e. curl goes above
+            # and beyond sending an If-Modified-Since and actually compares
+            # the Last-Modified header returned to it itself to make a
+            # decision whether to download the document body.
+
+            # See curl issue report here:
+            # https://sourceforge.net/p/curl/bugs/806/
+            reposadocommon.print_stderr(
+                'WARNING: No body provided; assuming already downloaded for %s',
+                destinationpath)
             return header
         else:
             # there was a download error of some sort; clean all relevant
