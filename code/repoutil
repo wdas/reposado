@@ -129,7 +129,7 @@ def print_info(key):
         reposadocommon.print_stdout('Title:         %s', product.get('title'))
         reposadocommon.print_stdout('Version:       %s', product.get('version'))
         reposadocommon.print_stdout('Size:          %s',
-                                    humanReadable(product.get('size', 0)))
+                                    reposadocommon.humanReadable(product.get('size', 0)))
         reposadocommon.print_stdout(
             'Post Date:     %s', product.get('PostDate'))
         reposadocommon.print_stdout(
@@ -193,20 +193,6 @@ def list_branches():
     catalog_branches = reposadocommon.getCatalogBranches()
     for key in catalog_branches.keys():
         reposadocommon.print_stdout(key)
-
-
-def humanReadable(size_in_bytes):
-    """Returns sizes in human-readable units."""
-    try:
-        size_in_bytes = int(size_in_bytes)
-    except ValueError:
-        size_in_bytes = 0
-    units = [(" KB", 2**20), (" MB", 2**30), (" GB", 2**40), (" TB", 2**50)]
-    for suffix, limit in units:
-        if size_in_bytes > limit:
-            continue
-        else:
-            return str(round(size_in_bytes/float(limit/2**10), 1)) + suffix
 
 
 def print_product_line(key, products, catalog_branches=None):

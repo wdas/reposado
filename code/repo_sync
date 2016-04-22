@@ -360,8 +360,12 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
                     targetsize = int(header.get('content-length'))
                     if (targetsize and
                             header.get('http_result_code').startswith('2')):
+                        if reposadocommon.pref('HumanReadableSizes'):
+                            printed_size = reposadocommon.humanReadable(targetsize)
+                        else:
+                            printed_size = str(targetsize) + ' bytes'
                         reposadocommon.print_stdout(
-                            'Downloading %s bytes from %s...', targetsize, url)
+                            'Downloading %s from %s...', printed_size, url)
                 except (ValueError, TypeError):
                     targetsize = 0
                 if header.get('http_result_code') == '206':

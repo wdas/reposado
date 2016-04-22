@@ -230,6 +230,20 @@ def print_stderr(msg, *args):
         print >> sys.stderr, concat_message(msg, *args)
 
 
+def humanReadable(size_in_bytes):
+    """Returns sizes in human-readable units."""
+    try:
+        size_in_bytes = int(size_in_bytes)
+    except ValueError:
+        size_in_bytes = 0
+    units = [(" KB", 10**6), (" MB", 10**9), (" GB", 10**12), (" TB", 10**15)]
+    for suffix, limit in units:
+        if size_in_bytes > limit:
+            continue
+        else:
+            return str(round(size_in_bytes/float(limit/2**10), 1)) + suffix
+
+
 def writeDataToPlist(data, filename):
     '''Writes a dict or list to a plist in our metadata dir'''
     metadata_dir = pref('UpdatesMetadataDir')
