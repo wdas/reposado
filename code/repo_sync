@@ -260,6 +260,19 @@ class CurlDownloadError(Exception):
     """Curl failed to download the item"""
     pass
 
+def curl_build_against_NSS():
+    """Check if Curl is build against NSS"""
+    cmd = ['curl', '--version']
+    runcmd = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = runcmd.communicate()
+    if out.find('NSS'):
+        curlNSS = True
+    else:
+        curlNSS = False
+
+    return curlNSS
+
+
 
 def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
     """Gets an HTTP or HTTPS URL and stores it in
@@ -283,7 +296,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
 
     curldirectivepath = os.path.join(TMPDIR, 'curl_temp')
     tempdownloadpath = os.path.normpath(destinationpath + '.download')
-
+    curlNSS = curl_build_against_NSS()
     # we're writing all the curl options to a file and passing that to
     # curl so we avoid the problem of URLs showing up in a process listing
     try:
@@ -296,8 +309,10 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
         print >> fileobj, 'speed-time = 30' # give up if too slow d/l
         # next line does not work on windows
         #print >> fileobj, 'output = "%s"' % tempdownloadpath
-
-        print >> fileobj, 'ciphers = HIGH,!ADH' # use only >=128 bit SSL
+        if curlNSS:
+            print >> fileobj, 'ciphers = rsa_aes_128_gcm_sha_256' # This is used by Apple, should be a longer list...
+        else:
+            print >> fileobj, 'ciphers = HIGH,!ADH' # use only >=128 bit SSL
         print >> fileobj, 'url = "%s"' % url
 
         # add additional options from our prefs
@@ -835,4 +850,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
