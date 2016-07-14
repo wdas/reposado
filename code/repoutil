@@ -621,73 +621,76 @@ def main():
     #p.add_option('--sync', action='store_true',
     #             help="""Synchronize Apple updates""")
     p.add_option('--configure', action='store_true',
-                 help="""Configure Reposado preferences.""")
+                 help='Configure Reposado preferences.')
     p.add_option('--products', '--updates', action='store_true',
                  dest='products',
-                 help="""List available updates""")
+                 help='List available updates.')
     p.add_option('--deprecated', action='store_true',
-                 help="""List deprecated updates""")
+                 help='List deprecated updates.')
     p.add_option('--non-deprecated', action='store_true',
-                 help="""List non-deprecated updates""")
+                 help='List non-deprecated updates.')
     p.add_option('--config-data', action='store_true',
                  help="""List updates with 'type="config-data"' attribute""")
     p.add_option('--sort', metavar='SORT_ORDER', default='date',
-                 help="""Sort list.
-                 Available sort orders are: date, title, id""")
+                 help='Sort list.\n'
+                      'Available sort orders are: date, title, id.')
     p.add_option('--reverse', action='store_true',
-                 help="""Reverse sort order.""")
+                 help='Reverse sort order.')
     p.add_option('--branches', '--catalogs',
                  dest='list_branches', action='store_true',
-                 help="""List available branch catalogs""")
+                 help='List available branch catalogs.')
     p.add_option('--new-branch',
                  metavar='BRANCH_NAME',
-                 help='''Create new empty branch BRANCH_NAME.''')
+                 help='Create new empty branch BRANCH_NAME.')
     p.add_option('--delete-branch',
                  metavar='BRANCH_NAME',
-                 help='''Delete branch BRANCH_NAME.''')
+                 help='Delete branch BRANCH_NAME.')
     p.add_option('--copy-branch', nargs=2,
                  metavar='SOURCE_BRANCH DEST_BRANCH',
-                 help='''Copy all items from SOURCE_BRANCH to
-                 DEST_BRANCH. If DEST_BRANCH does not exist,
-                 it will be created.''')
+                 help='Copy all items from SOURCE_BRANCH to '
+                      'DEST_BRANCH. If DEST_BRANCH does not exist, '
+                      'it will be created.')
     p.add_option('--list-branch', '--list-catalog',
                  dest='branch',
                  metavar='BRANCH_NAME',
-                 help="""List updates in branch BRANCH_NAME""")
+                 help='List updates in branch BRANCH_NAME.')
     p.add_option('--diff', '--diff-branch', '--diff-branches',
                  dest='diff_branch', nargs=2,
                  metavar='BRANCH1_NAME BRANCH2_NAME',
-                 help="""Display differences between two branches""")
+                 help='Display differences between two branches.')
     p.add_option('--product-info', '--info', metavar='PRODUCT_ID',
                  dest='info',
-                 help="""Print info on a specific update.""")
+                 help='Print info on a specific update.')
     p.add_option('--product-dist', '--dist', metavar='PRODUCT_ID',
                  dest='dist',
-                 help="""Print the contents of the .dist file for a specific
-                 update.""")
+                 help='Print the contents of the .dist file for a specific '
+                      'update.')
     p.add_option('--add-product', '--add-products',
                  '--add-update', '--add-updates', '--add',
                  dest='add_product', nargs=2,
                  metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
-                 help='''Add one or more PRODUCT_IDs to catalog branch
-                 BRANCH_NAME.  --add-product all BRANCH_NAME will add
-                 all cached products, including deprecated products, to
-                 catalog BRANCH_NAME.''')
+                 help='Add one or more PRODUCT_IDs to catalog branch '
+                      'BRANCH_NAME.  --add-product all BRANCH_NAME will add '
+                      'all cached products, including deprecated products, to '
+                      'catalog BRANCH_NAME. --add-product non-deprecated '
+                      'BRANCH_NAME will add all non-deprecated products to '
+                      'catalog BRANCH_NAME.')
     p.add_option('--remove-product', '--remove-products', nargs=2,
                  metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
-                 help='''Remove one or more PRODUCT_IDs from catalog branch
-                 BRANCH_NAME.''')
+                 help='Remove one or more PRODUCT_IDs from catalog branch '
+                      'BRANCH_NAME. --remove-product deprecated will remove '
+                      'all deprecated products from BRANCH_NAME.')
     p.add_option('--remove-config-data',
                  metavar='PRODUCT_ID [PRODUCT_ID ...]',
-                 help='''Remove the 'type="config-data"' attribute from one or
-                 more PRODUCT_IDs.''')
+                 help='Remove the \'type="config-data"\' attribute from one or '
+                      'more PRODUCT_IDs.')
     p.add_option('--purge-product', '--purge-products',
                  metavar='PRODUCT_ID [PRODUCT_ID ...] [--force]',
-                 help='''Purge one or more PRODUCT_IDs from product
-                 database and remove any locally replicated version.''')
+                 help='Purge one or more PRODUCT_IDs from product '
+                      'database and remove any locally replicated version.')
     p.add_option('--force', action='store_true',
-                 help="""Force purge of product. Must be used with
-                 --purge-product option.""")
+                 help='Force purge of product. Must be used with '
+                      '--purge-product option.')
 
     options, arguments = p.parse_args()
 
