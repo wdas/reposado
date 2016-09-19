@@ -36,6 +36,8 @@ Here is an example .htaccess file you could place at the root of your Reposado r
 	RewriteRule ^index(.*)\.sucatalog$ content/catalogs/others/index-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog [L]
 	RewriteCond %{HTTP_USER_AGENT} Darwin/15
 	RewriteRule ^index(.*)\.sucatalog$ content/catalogs/others/index-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog [L]
+	RewriteCond %{HTTP_USER_AGENT} Darwin/16
+	RewriteRule ^index(.*)\.sucatalog$ content/catalogs/others/index-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog [L]
 
 
 This requires Apache2 to be configured to actually pay attention to mod_rewrite rules in .htaccess files. See your Apache and mod_rewrite documentation for details.
@@ -103,6 +105,13 @@ Heig Gregorian has contributed this example of an Nginx configuration. This is a
 
 	if ( $http_user_agent ~ "Darwin/15" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog last;
+	}
+
+
+### 10.12.x - Sierra
+
+	if ( $http_user_agent ~ "Darwin/16" ){
+	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog last;
 	}
 
 Again, consult Nginx documentation for further information about URL rewriting.
