@@ -511,7 +511,7 @@ def readXMLfile(filename):
 
 def writeXMLtoFile(node, path):
     '''Write XML dom node to file'''
-    xml_string = node.toxml()
+    xml_string = node.toxml('utf-8')
     try:
         fileobject = open(path, mode='w')
         print >> fileobject, xml_string
