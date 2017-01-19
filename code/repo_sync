@@ -261,6 +261,7 @@ class CurlDownloadError(Exception):
     pass
 
 
+
 def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
     """Gets an HTTP or HTTPS URL and stores it in
     destination path. Returns a dictionary of headers, which includes
@@ -294,10 +295,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
         print >> fileobj, 'fail'           # throw error if download fails
         print >> fileobj, 'dump-header -'  # dump headers to stdout
         print >> fileobj, 'speed-time = 30' # give up if too slow d/l
-        # next line does not work on windows
-        #print >> fileobj, 'output = "%s"' % tempdownloadpath
-
-        print >> fileobj, 'ciphers = HIGH,!ADH' # use only >=128 bit SSL
+        print >> fileobj, 'tlsv1'          # use only TLS 1.x
         print >> fileobj, 'url = "%s"' % url
 
         # add additional options from our prefs
@@ -835,4 +833,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
