@@ -94,7 +94,8 @@ def pref(prefname):
              'leopard.merged-1.sucatalog')
         ],
         'PreferredLocalizations': ['English', 'en'],
-        'CurlPath': '/usr/bin/curl'
+        'CurlPath': '/usr/bin/curl',
+        'PromptForBranchCopies': True
     }
     try:
         prefs = plistlib.readPlist(prefsFilePath())

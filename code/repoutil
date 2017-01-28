@@ -547,7 +547,8 @@ def copy_branches(source_branch, dest_branch):
     if not source_branch in catalog_branches:
         reposadocommon.print_stderr('Branch %s does not exist!', source_branch)
         return
-    if dest_branch in catalog_branches:
+    if dest_branch in catalog_branches and reposadocommon.pref(
+            'PromptForBranchCopies'):
         answer = raw_input(
             'Really replace contents of branch %s with branch %s? [y/n] '
             % (dest_branch, source_branch))
