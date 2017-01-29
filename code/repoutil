@@ -566,16 +566,13 @@ def delete_branch(branchname, force=False):
     if not branchname in catalog_branches:
         reposadocommon.print_stderr('Branch %s does not exist!', branchname)
         return
-    if force:
-        del catalog_branches[branchname]
-        deleteBranchCatalogs(branchname)
-        reposadocommon.writeCatalogBranches(catalog_branches)
-        return
-    answer = raw_input('Really remove branch %s? [y/n] ' % branchname)
-    if answer.lower().startswith('y'):
-        del catalog_branches[branchname]
-        deleteBranchCatalogs(branchname)
-        reposadocommon.writeCatalogBranches(catalog_branches)
+    if not force:
+        answer = raw_input('Really remove branch %s? [y/n] ' % branchname)
+        if not answer.lower().startswith('y'):
+            return
+    del catalog_branches[branchname]
+    deleteBranchCatalogs(branchname)
+    reposadocommon.writeCatalogBranches(catalog_branches)
 
 
 def new_branch(branchname):
