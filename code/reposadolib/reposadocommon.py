@@ -434,7 +434,7 @@ def writeBranchCatalogs(localcatalogpath):
                             catalog['Products'][product_key] = catalog_entry
                             continue
             else:
-                if pref('LocalCatalogURLBase') :
+                if pref('LocalCatalogURLBase'):
                     print_stderr(
                         'WARNING: Product %s not added to branch %s of %s. '
                         'It is not in the corresponding Apple catalogs '
