@@ -94,8 +94,7 @@ def pref(prefname):
              'leopard.merged-1.sucatalog')
         ],
         'PreferredLocalizations': ['English', 'en'],
-        'CurlPath': '/usr/bin/curl',
-        'PromptForBranchCopies': True
+        'CurlPath': '/usr/bin/curl'
     }
     try:
         prefs = plistlib.readPlist(prefsFilePath())
@@ -435,7 +434,7 @@ def writeBranchCatalogs(localcatalogpath):
                             catalog['Products'][product_key] = catalog_entry
                             continue
             else:
-                if pref('LocalCatalogURLBase') :
+                if pref('LocalCatalogURLBase'):
                     print_stderr(
                         'WARNING: Product %s not added to branch %s of %s. '
                         'It is not in the corresponding Apple catalogs '

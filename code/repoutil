@@ -534,7 +534,7 @@ def purge_product(product_ids, force=False):
     reposadocommon.writeAllLocalCatalogs()
 
 
-def copy_branches(source_branch, dest_branch):
+def copy_branches(source_branch, dest_branch, force=False):
     '''Copies source_branch to dest_branch, replacing dest_branch'''
     # sanity checking
     for branch in [source_branch, dest_branch]:
@@ -547,8 +547,7 @@ def copy_branches(source_branch, dest_branch):
     if not source_branch in catalog_branches:
         reposadocommon.print_stderr('Branch %s does not exist!', source_branch)
         return
-    if dest_branch in catalog_branches and reposadocommon.pref(
-            'PromptForBranchCopies'):
+    if dest_branch in catalog_branches and not force:
         answer = raw_input(
             'Really replace contents of branch %s with branch %s? [y/n] '
             % (dest_branch, source_branch))
@@ -561,11 +560,16 @@ def copy_branches(source_branch, dest_branch):
     reposadocommon.writeAllBranchCatalogs()
 
 
-def delete_branch(branchname):
+def delete_branch(branchname, force=False):
     '''Deletes a branch'''
     catalog_branches = reposadocommon.getCatalogBranches()
     if not branchname in catalog_branches:
         reposadocommon.print_stderr('Branch %s does not exist!', branchname)
+        return
+    if force:
+        del catalog_branches[branchname]
+        deleteBranchCatalogs(branchname)
+        reposadocommon.writeCatalogBranches(catalog_branches)
         return
     answer = raw_input('Really remove branch %s? [y/n] ' % branchname)
     if answer.lower().startswith('y'):
@@ -644,10 +648,10 @@ def main():
                  metavar='BRANCH_NAME',
                  help='Create new empty branch BRANCH_NAME.')
     p.add_option('--delete-branch',
-                 metavar='BRANCH_NAME',
+                 metavar='BRANCH_NAME [--force]',
                  help='Delete branch BRANCH_NAME.')
     p.add_option('--copy-branch', nargs=2,
-                 metavar='SOURCE_BRANCH DEST_BRANCH',
+                 metavar='SOURCE_BRANCH DEST_BRANCH [--force]',
                  help='Copy all items from SOURCE_BRANCH to '
                       'DEST_BRANCH. If DEST_BRANCH does not exist, '
                       'it will be created.')
@@ -690,8 +694,9 @@ def main():
                  help='Purge one or more PRODUCT_IDs from product '
                       'database and remove any locally replicated version.')
     p.add_option('--force', action='store_true',
-                 help='Force purge of product. Must be used with '
-                      '--purge-product option.')
+                 help='Force purge of product, force copy or force delete a '
+                 'branch. Must be used with --purge-product, --copy-branch '
+                 'or --delete-branch options.')
 
     options, arguments = p.parse_args()
 
@@ -717,9 +722,10 @@ def main():
     if options.new_branch:
         new_branch(options.new_branch)
     if options.copy_branch:
-        copy_branches(options.copy_branch[0], options.copy_branch[1])
+        copy_branches(
+            options.copy_branch[0], options.copy_branch[1], force=options.force)
     if options.delete_branch:
-        delete_branch(options.delete_branch)
+        delete_branch(options.delete_branch, force=options.force)
     if options.diff_branch:
         diff_branches(options.diff_branch)
     if options.add_product:
