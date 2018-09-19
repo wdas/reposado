@@ -121,3 +121,19 @@ High Sierra clients should use a CatalogURL of the form:
 Branch CatalogURLs take the form of:
 
     http://su.yourorg.com/content/catalogs/others/index-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1_<branchname>.sucatalog
+
+
+## Mojave Clients
+
+Testing with the beta releases indicates that Mojave's `softwareupdate` requires the use of https. It also does Extended Validation of TLS certs by default. To disable this, you can set a preference in the com.apple.SoftwareUpdate preferences domain:
+
+`sudo defaults write com.apple.SoftwareUpdate SUDisableEVCheck -bool YES`  
+(Or use a configuration profile to manage this preference.)
+
+Mojave clients should use a CatalogURL of the form:
+
+    https://su.yourorg.com/content/catalogs/others/index-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog
+
+Branch CatalogURLs take the form of:
+
+    https://su.yourorg.com/content/catalogs/others/index-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1_<branchname>.sucatalog

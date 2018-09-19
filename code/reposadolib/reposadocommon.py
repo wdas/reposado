@@ -95,6 +95,9 @@ def pref(prefname):
             ('https://swscan.apple.com/content/catalogs/others/'
              'index-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-'
              'leopard.merged-1.sucatalog'),
+            ('https://swscan.apple.com/content/catalogs/others/'
+             'index-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-'
+             'snowleopard-leopard.merged-1.sucatalog'),
         ],
         'PreferredLocalizations': ['English', 'en'],
         'CurlPath': '/usr/bin/curl'
@@ -317,7 +320,7 @@ def getFilenameFromURL(url):
 
 def getLocalPathNameFromURL(url, root_dir=None):
     '''Derives the appropriate local path name based on the URL'''
-    if root_dir == None:
+    if root_dir is None:
         root_dir = pref('UpdatesRootDir')
     (unused_scheme, unused_netloc,
         path, unused_query, unused_fragment) = urlparse.urlsplit(url)
@@ -364,7 +367,7 @@ def rewriteURLsForProduct(product):
 def rewriteURLs(catalog):
     '''Rewrites all the URLs in the given catalog to point to our local
     replica'''
-    if pref('LocalCatalogURLBase') == None:
+    if pref('LocalCatalogURLBase') is None:
         return
     if 'Products' in catalog:
         product_keys = list(catalog['Products'].keys())
@@ -586,4 +589,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

@@ -11,7 +11,7 @@ Lion Server's Software Update service has a similar capability, but this is done
 Since Reposado doesn't handle the web-serving part of offering Apple software updates, Reposado itself cannot provide a similar feature: instead you must configure your web server to do URL rewrites, or write your own CGI to provide this functionality.
 
 
-## mod_rewrite example
+## Apache2 mod_rewrite example
 
 If you are using Apache2 as your webserver, you may be able to configure mod_rewrite to return the "correct" OS-specific sucatalog:
 
@@ -40,6 +40,8 @@ Here is an example .htaccess file you could place at the root of your Reposado r
 	RewriteRule ^index(.*)\.sucatalog$ content/catalogs/others/index-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog [L]
 	RewriteCond %{HTTP_USER_AGENT} Darwin/17
 	RewriteRule ^index(.*)\.sucatalog$ content/catalogs/others/index-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog [L]
+	RewriteCond %{HTTP_USER_AGENT} Darwin/18
+	RewriteRule ^index(.*)\.sucatalog$ content/catalogs/others/index-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog [L]
 
 
 This requires Apache2 to be configured to actually pay attention to mod_rewrite rules in .htaccess files. See your Apache and mod_rewrite documentation for details.
@@ -47,80 +49,48 @@ This requires Apache2 to be configured to actually pay attention to mod_rewrite 
 Note that the format for these rules is specific for use in an .htaccess file. The rules would need to be changed if in the main Apache config file.
 
 
-## Non-Apache servers
+## Other web servers
 
 Other web servers support URL rewriting; the specifics are slightly different, but the general concepts are similar.
+
+### nginx
 
 Heig Gregorian has contributed this example of an Nginx configuration. This is an excerpt from the 'server' section of his Nginx config:
 
 
-### 10.4.x - Tiger
 	
 	if ( $http_user_agent ~ "Darwin/8" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/index$1.sucatalog last;
 	}
-
-
-### 10.5.x - Leopard
-
 	if ( $http_user_agent ~ "Darwin/9" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-leopard.merged-1$1.sucatalog last;
 	}
-
-
-### 10.6.x - Snow Leopard
-
 	if ( $http_user_agent ~ "Darwin/10" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-leopard-snowleopard.merged-1$1.sucatalog last;
 	}
-
-
-### 10.7.x - Lion
-
 	if ( $http_user_agent ~ "Darwin/11" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-lion-snowleopard-leopard.merged-1$1.sucatalog last;
 	}
-
-
-### 10.8.x - Mountain Lion
-
 	if ( $http_user_agent ~ "Darwin/12" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog last;
 	}
-
-
-### 10.9.x - Mavericks
-
 	if ( $http_user_agent ~ "Darwin/13" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog last;
 	}
-
-
-### 10.10.x - Yosemite
-
 	if ( $http_user_agent ~ "Darwin/14" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog last;
 	}
-
-
-### 10.11.x - El Capitan
-
 	if ( $http_user_agent ~ "Darwin/15" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog last;
 	}
-
-
-### 10.12.x - Sierra
-
 	if ( $http_user_agent ~ "Darwin/16" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog last;
 	}
-
-
-### 10.13.x - High Sierra
-
 	if ( $http_user_agent ~ "Darwin/17" ){
 	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog last;
+	}
+	if ( $http_user_agent ~ "Darwin/18" ){
+	  rewrite ^/index(.*)\.sucatalog$ /content/catalogs/others/index-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1$1.sucatalog last;
 	}
 
 Again, consult Nginx documentation for further information about URL rewriting.
