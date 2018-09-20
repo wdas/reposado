@@ -1,7 +1,7 @@
 Walt Disney Animation Studios welcomes contributions to reposado!
 
 ### Contributor License Agreement
-All contributors must complete and sign a Contributor License Agreement. A copy can be found [here](https://disney-animation.s3.amazonaws.com/uploads/production/open_source_pdf/2/pdf/TestCLA-1.pdf). 
+All contributors must complete and sign a Contributor License Agreement as discussed [here](https://www.technology.disneyanimation.com/collaboration-through-sharing). A copy can be found [here](https://docs.wixstatic.com/ugd/a2be3a_c129b5feb37444fc9c52f3ce0714b200.pdf). 
 
 ### Preferred contribution methods
 #### Bug fixes
