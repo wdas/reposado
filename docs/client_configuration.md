@@ -127,7 +127,7 @@ Branch CatalogURLs take the form of:
 
 Testing with the beta releases indicates that Mojave's `softwareupdate` requires the use of https. It also does Extended Validation of TLS certs by default. To disable this, you can set a preference in the com.apple.SoftwareUpdate preferences domain:
 
-`sudo defaults write com.apple.SoftwareUpdate SUDisableEVCheck -bool YES`  
+`sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate SUDisableEVCheck -bool YES`  
 (Or use a configuration profile to manage this preference.)
 
 Mojave clients should use a CatalogURL of the form:
