@@ -137,3 +137,5 @@ Mojave clients should use a CatalogURL of the form:
 Branch CatalogURLs take the form of:
 
     https://su.yourorg.com/content/catalogs/others/index-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1_<branchname>.sucatalog
+    
+(More importantly, this means the softwareupdate catalog and products must be served via https -- if you are replicating products locally, this means the LocalCatalogURLBase must also be an https URL.)
