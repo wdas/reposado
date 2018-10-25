@@ -8,7 +8,7 @@ This setting may be controlled by setting the value of CatalogURL in /Library/Pr
 
 where \<catalog_url> is the URL to the catalog file.
 
-This can also be managed via configuration profile, which in turn can be deployed via MDM.
+This preference can also be managed via configuration profile, which in turn can be deployed via MDM.
 
 In recent versions of macOS you may also use `sudo softwareupdate --set-catalog <catalog_url>` and for the versions that support it, that might be a "better" method than using `defaults write`.
 
