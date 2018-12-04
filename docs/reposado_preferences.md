@@ -26,6 +26,8 @@ If you are replicating the updates as well as the catalogs, you must also includ
 
 If LocalCatalogURLBase is undefined, only Apple catalogs will be replicated and the URLs will not be re-written.  The actual Software Update packages will not be downloaded. This allows you to have custom catalogs for Apple Software Update, but clients will still download the actual update packages from Apple's servers. If Reposado is configured this way, you will not be able to offer deprecated updates to clients.
 
+Note: if you are serving your softwareupdate repo on a non-standard port (standard ports are 80 for http and 443 for https) the alternate port is part of the LocalCatalogURLBase. An example is "http://su.myorg.com:8088"
+
 *repoutil --config* will allow you to quickly and easily edit the above three values (UpdatesRootDir, UpdatesMetadataDir, LocalCatalogURLBase).
 
 
