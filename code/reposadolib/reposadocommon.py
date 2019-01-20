@@ -351,6 +351,9 @@ def rewriteURLsForProduct(product):
         if 'MetadataURL' in package:
             package['MetadataURL'] = rewriteOneURL(
                 package['MetadataURL'])
+        if 'IntegrityDataURL' in package:
+            package['IntegrityDataURL'] = rewriteOneURL(
+                package['IntegrityDataURL'])
         # workaround for 10.8.2 issue where client ignores local pkg
         # and prefers Apple's URL. Need to revisit as we better understand this
         # issue

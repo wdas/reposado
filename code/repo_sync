@@ -712,6 +712,16 @@ def sync(fast_scan=False, download_packages=True):
                                         'Could not replicate %s: %s',
                                         package['MetadataURL'], err)
                                     continue
+                            if 'IntegrityDataURL' in package:
+                                try:
+                                    unused_path = replicateURLtoFilesystem(
+                                        package['IntegrityDataURL'],
+                                        copy_only_if_missing=fast_scan)
+                                except ReplicationError, err:
+                                    reposadocommon.print_stderr(
+                                        'Could not replicate %s: %s',
+                                        package['IntegrityDataURL'], err)
+                                    continue
 
                     # calculate total size
                     size = 0
