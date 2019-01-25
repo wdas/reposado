@@ -95,6 +95,57 @@ Heig Gregorian has contributed this example of an Nginx configuration. This is a
 
 Again, consult Nginx documentation for further information about URL rewriting.
 
+### IIS
+
+This was tested successfully on Microsoft IIS 7. IIS 7 does not have URL Rewrite support installed by default, but it can be added by installing a module for the specific version of IIS.
+
+IIS does not support serving certain Apple specific extensions, so the following MIME Types will need to be added. This is example is taken from the web.config in the root of the reposado directory:
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<configuration>
+    		<system.webServer>
+        		<staticContent>
+            			<mimeMap fileExtension="." mimeType="text/xml" />
+            			<mimeMap fileExtension=".dist" mimeType="text/xml" />
+           			<mimeMap fileExtension=".pkg" mimeType="application/octet-stream" />
+            			<mimeMap fileExtension=".pkm" mimeType="application/octet-stream" />
+            			<mimeMap fileExtension=".sucatalog" mimeType="text/xml" />
+        		</staticContent>
+    		</system.webServer>
+	</configuration>
+
+Here is an example web.config file located in the html directory of a reposado repository:
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<configuration>
+   		<system.webServer>
+        		<rewrite>
+            			<rules>
+                			<rule name="Darwin/16" stopProcessing="true">
+                    				<match url="^index(.*)\.sucatalog$" />
+                    				<conditions>
+                        				<add input="{HTTP_USER_AGENT}" pattern="Darwin/16" />
+                    				</conditions>
+                    				<action type="Rewrite" url="content/catalogs/others/index-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1{R:1}.sucatalog" />
+                			</rule>
+                			<rule name="Darwin/17" stopProcessing="true">
+                    				<match url="^index(.*)\.sucatalog$" />
+                    				<conditions>
+                        				<add input="{HTTP_USER_AGENT}" pattern="Darwin/17" />
+                    				</conditions>
+                    				<action type="Rewrite" url="content/catalogs/others/index-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1{R:1}.sucatalog" />
+                			</rule>
+                			<rule name="Darwin/18" stopProcessing="true">
+                    				<match url="^index(.*)\.sucatalog$" />
+                    				<conditions>
+                        				<add input="{HTTP_USER_AGENT}" pattern="Darwin/18" />
+                    				</conditions>
+                    				<action type="Rewrite" url="content/catalogs/others/index-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1{R:1}.sucatalog" />
+                			</rule>
+            			</rules>
+        		</rewrite>
+    		</system.webServer>
+	</configuration>
 
 ## Testing
 
