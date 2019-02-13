@@ -110,6 +110,7 @@ IIS does not support serving certain Apple specific extensions, so the following
            			<mimeMap fileExtension=".pkg" mimeType="application/octet-stream" />
             			<mimeMap fileExtension=".pkm" mimeType="application/octet-stream" />
             			<mimeMap fileExtension=".sucatalog" mimeType="text/xml" />
+				<mimeMap fileExtension=".integrityDataV1" mimeType="text/xml" />
         		</staticContent>
     		</system.webServer>
 	</configuration>
