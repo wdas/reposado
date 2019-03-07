@@ -296,6 +296,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
         print >> fileobj, 'dump-header -'  # dump headers to stdout
         print >> fileobj, 'speed-time = 30' # give up if too slow d/l
         print >> fileobj, 'tlsv1'          # use only TLS 1.x
+	print >> fileobj, 'http1.1'        # disable http2
         print >> fileobj, 'url = "%s"' % url
 
         # add additional options from our prefs
