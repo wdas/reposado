@@ -296,7 +296,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
         print >> fileobj, 'dump-header -'  # dump headers to stdout
         print >> fileobj, 'speed-time = 30' # give up if too slow d/l
         print >> fileobj, 'tlsv1'          # use only TLS 1.x
-	print >> fileobj, 'http1.1'        # disable http2
+        print >> fileobj, 'http1.1'        # disable http2
         print >> fileobj, 'url = "%s"' % url
 
         # add additional options from our prefs
@@ -346,11 +346,17 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
                 line = line_stripped
 
                 if line.startswith('HTTP/'):
-                    header['http_result_code'] = line.split(None, 2)[1]
-                    header['http_result_description'] = line.split(None, 2)[2]
+                    header['http_result_code'] = ''
+                    header['http_result_description'] = ''
+                    try:
+                        part = line.split(None, 2)
+                        header['http_result_code'] = part[1]
+                        header['http_result_description'] = part[2]
+                    except IndexError:
+                        pass
                 elif ': ' in line:
-                    part = line.split(None, 1)
-                    fieldname = part[0].rstrip(':').lower()
+                    part = line.split(': ', 1)
+                    fieldname = part[0].lower()
                     header[fieldname] = part[1]
             else:
                 # "empty" line, but not end of output. likely end of headers
