@@ -93,7 +93,7 @@ def getRestartNeeded(product):
     "No" if none do, and "Sometimes" if some do and some don't.
     Returns "UNKNOWN" if there is no pkg_ref data for the update.'''
 
-    pkgs = product.get('pkg_refs', {}).keys()
+    pkgs = list(product.get('pkg_refs', {}).keys())
     pkg_count = len(pkgs)
     if pkg_count == 0:
         return "UNKNOWN"
@@ -282,7 +282,7 @@ def list_non_deprecated(sort_order='date', reverse_sort=False):
 def list_config_data(sort_order='date', reverse_sort=False):
     '''Find updates with \'type="config-data"\' attribute'''
     product_info = reposadocommon.getProductInfo()
-    product_list = product_info.keys()
+    product_list = list(product_info.keys())
     matching_products = reposadocommon.check_or_remove_config_data_attribute(
         product_list, remove_attr=False, products=product_info,
         suppress_output=True)
@@ -292,10 +292,6 @@ def list_config_data(sort_order='date', reverse_sort=False):
 def list_products(sort_order='date', reverse_sort=False,
                   list_of_productids=None):
     '''Prints a list of Software Update products'''
-
-    def sort_by_key(a, b):
-        """Internal comparison function for use with sorting"""
-        return cmp(a['sort_key'], b['sort_key'])
 
     sort_keys = {'date':  'PostDate',
                  'title': 'title',
@@ -307,7 +303,7 @@ def list_products(sort_order='date', reverse_sort=False,
     catalog_branches = reposadocommon.getCatalogBranches()
     product_list = []
     if list_of_productids == None:
-        list_of_productids = products.keys()
+        list_of_productids = list(products.keys())
     for productid in list_of_productids:
         if not productid in products:
             errormessages.append(
@@ -328,9 +324,7 @@ def list_products(sort_order='date', reverse_sort=False,
                     % (productid, sort_key))
                 continue
         product_list.append(product_dict)
-    product_list.sort(sort_by_key)
-    if reverse_sort:
-        product_list.reverse()
+    product_list.sort(key=lambda item: item['sort_key'], reverse=reverse_sort)
     for product in product_list:
         print_product_line(product['key'], products, catalog_branches)
     for error in errormessages:
@@ -362,7 +356,7 @@ def add_product_to_branch(parameters):
 
     products = reposadocommon.getProductInfo()
     if 'all' in product_id_list:
-        product_id_list = products.keys()
+        product_id_list = list(products.keys())
     elif 'non-deprecated' in product_id_list:
         product_id_list = [key for key in products.keys()
                            if products[key].get('AppleCatalogs')]
@@ -549,7 +543,7 @@ def copy_branches(source_branch, dest_branch, force=False):
         reposadocommon.print_stderr('Branch %s does not exist!', source_branch)
         return
     if dest_branch in catalog_branches and not force:
-        answer = raw_input(
+        answer = reposadocommon.get_input(
             'Really replace contents of branch %s with branch %s? [y/n] '
             % (dest_branch, source_branch))
         if not answer.lower().startswith('y'):
@@ -568,7 +562,8 @@ def delete_branch(branchname, force=False):
         reposadocommon.print_stderr('Branch %s does not exist!', branchname)
         return
     if not force:
-        answer = raw_input('Really remove branch %s? [y/n] ' % branchname)
+        answer = reposadocommon.get_input(
+            'Really remove branch %s? [y/n] ' % branchname)
         if not answer.lower().startswith('y'):
             return
     del catalog_branches[branchname]
@@ -598,7 +593,7 @@ def remove_config_data(product_ids):
         reposadocommon.print_stdout(
             'Checking all products for config-data attributes...')
         product_info = reposadocommon.getProductInfo()
-        product_list = product_info.keys()
+        product_list = list(product_info.keys())
         updated_products = reposadocommon.check_or_remove_config_data_attribute(
             product_list, remove_attr=True, products=product_info,
             suppress_output=True)

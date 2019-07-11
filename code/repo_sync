@@ -51,9 +51,14 @@ import subprocess
 #import sys
 import time
 import tempfile
-import urlparse
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
+try:
+    # Python 2
+    from urlparse import urlsplit
+except ImportError:
+    # Python 3
+    from urllib.parse import urlsplit
 
 from reposadolib import reposadocommon
 
@@ -89,7 +94,7 @@ def parseServerMetadata(filename):
         return {}
     vers = md_plist.get('CFBundleShortVersionString', '')
     localization = md_plist.get('localization', {})
-    languages = localization.keys()
+    languages = list(localization.keys())
     preferred_lang = getPreferredLocalization(languages)
     preferred_localization = localization.get(preferred_lang)
     if preferred_localization:
@@ -138,7 +143,7 @@ def parse_cdata(cdata_str):
     # matches
     for match_obj in re.finditer(regex, cdata_str):
         match_dict = match_obj.groupdict()
-        if 'key' in match_dict.keys() and 'value' in match_dict.keys():
+        if 'key' in list(match_dict.keys()) and 'value' in list(match_dict.keys()):
             key = match_dict['key']
             value = match_dict['value']
             # now 'de-escape' escaped quotes
@@ -170,7 +175,7 @@ def parseSUdist(filename, debug=False):
     # look for <choices-outline ui='SoftwareUpdate'
     choice_outlines = dom.getElementsByTagName('choices-outline') or []
     for outline in choice_outlines:
-        if 'ui' in outline.attributes.keys():
+        if 'ui' in list(outline.attributes.keys()):
             if outline.attributes['ui'].value == 'SoftwareUpdate':
                 if debug:
                     print(outline.toxml())
@@ -178,7 +183,7 @@ def parseSUdist(filename, debug=False):
                 if lines:
                     if debug:
                         print(lines[0].toxml())
-                    if 'choice' in lines[0].attributes.keys():
+                    if 'choice' in list(lines[0].attributes.keys()):
                         su_choice_id_key = lines[0].attributes['choice'].value
 
     if debug:
@@ -189,7 +194,7 @@ def parseSUdist(filename, debug=False):
     su_choice = {}
     choice_elements = dom.getElementsByTagName('choice') or []
     for choice in choice_elements:
-        keys = choice.attributes.keys()
+        keys = list(choice.attributes.keys())
         if 'id' in keys:
             choice_id = choice.attributes['id'].value
             if choice_id == su_choice_id_key:
@@ -200,18 +205,18 @@ def parseSUdist(filename, debug=False):
                     su_choice[key] = choice.attributes[key].value
                 pkg_refs = choice.getElementsByTagName('pkg-ref') or []
                 for pkg in pkg_refs:
-                    if 'id' in pkg.attributes.keys():
+                    if 'id' in list(pkg.attributes.keys()):
                         pkg_id = pkg.attributes['id'].value
-                        if not pkg_id in pkgs.keys():
+                        if not pkg_id in list(pkgs.keys()):
                             pkgs[pkg_id] = {}
                         if pkg.firstChild:
                             pkg_name = pkg.firstChild.wholeText
                             if pkg_name:
                                 pkgs[pkg_id]['name'] = pkg_name
-                        if 'onConclusion' in pkg.attributes.keys():
+                        if 'onConclusion' in list(pkg.attributes.keys()):
                             pkgs[pkg_id]['RestartAction'] = (
                                 pkg.attributes['onConclusion'].value)
-                        if 'version' in pkg.attributes.keys():
+                        if 'version' in list(pkg.attributes.keys()):
                             pkgs[pkg_id]['version'] = (
                                 pkg.attributes['version'].value)
 
@@ -543,7 +548,7 @@ def replicateURLtoFilesystem(full_url, root_dir=None,
         relative_url = full_url[len(base_url):].lstrip('/')
     else:
         (unused_scheme, unused_netloc,
-         path, unused_query, unused_fragment) = urlparse.urlsplit(full_url)
+         path, unused_query, unused_fragment) = urlsplit(full_url)
         relative_url = path.lstrip('/')
     relative_url = os.path.normpath(relative_url)
     local_file_path = os.path.join(root_dir, relative_url) + appendToFilename
@@ -739,7 +744,7 @@ def sync(fast_scan=False, download_packages=True):
 
                     distributions = product['Distributions']
                     preferred_lang = getPreferredLocalization(
-                        distributions.keys())
+                        list(distributions.keys()))
                     preferred_dist = None
 
                     for dist_lang in distributions.keys():
@@ -759,9 +764,9 @@ def sync(fast_scan=False, download_packages=True):
                     if not preferred_dist:
                         # we didn't download the .dist for the preferred
                         # language. Let's use English.
-                        if 'English' in distributions.keys():
+                        if 'English' in list(distributions.keys()):
                             dist_lang = 'English'
-                        elif 'en' in distributions.keys():
+                        elif 'en' in list(distributions.keys()):
                             dist_lang = 'en'
                         else:
                             # no English or en.dist!
