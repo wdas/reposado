@@ -39,6 +39,8 @@ reposadocommon.py
 Created by Greg Neagle on 2011-03-03.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
 import imp
@@ -211,7 +213,7 @@ def log(msg):
     try:
         fileobj = open(LOGFILE, mode='a', buffering=1)
         try:
-            print >> fileobj, time.strftime(formatstr), msg.encode('UTF-8')
+            print(time.strftime(formatstr), msg.encode('UTF-8'), file=fileobj)
         except (OSError, IOError):
             pass
         fileobj.close()
@@ -227,7 +229,7 @@ def print_stdout(msg, *args):
     if LOGFILE:
         log(output)
     else:
-        print output
+        print(output)
         sys.stdout.flush()
 
 
@@ -239,7 +241,7 @@ def print_stderr(msg, *args):
     if LOGFILE:
         log(output)
     else:
-        print >> sys.stderr, concat_message(msg, *args)
+        print(concat_message(msg, *args), file=sys.stderr)
 
 
 def humanReadable(size_in_bytes):
@@ -262,14 +264,14 @@ def writeDataToPlist(data, filename):
     if not os.path.exists(metadata_dir):
         try:
             os.makedirs(metadata_dir)
-        except OSError, errmsg:
+        except OSError as errmsg:
             print_stderr(
                 'Could not create missing %s because %s',
                 metadata_dir, errmsg)
     try:
         plistlib.writePlist(data,
             os.path.join(metadata_dir, filename))
-    except (IOError, OSError, TypeError), errmsg:
+    except (IOError, OSError, TypeError) as errmsg:
         print_stderr(
             'Could not write %s because %s', filename, errmsg)
 
@@ -508,7 +510,7 @@ def readXMLfile(filename):
         print_stderr(
             'Invalid XML in %s', filename)
         return None
-    except IOError, err:
+    except IOError as err:
         print_stderr(
             'Error reading %s: %s', filename, err)
         return None
@@ -520,7 +522,7 @@ def writeXMLtoFile(node, path):
     xml_string = node.toxml('utf-8')
     try:
         fileobject = open(path, mode='w')
-        print >> fileobject, xml_string
+        print(xml_string, file=fileobject)
         fileobject.close()
     except (OSError, IOError):
         print_stderr('Couldn\'t write XML to %s' % path)
