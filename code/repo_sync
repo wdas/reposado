@@ -373,7 +373,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
                     if (targetsize and
                             header.get('http_result_code').startswith('2')):
                         if reposadocommon.pref('HumanReadableSizes'):
-                            printed_size = reposadocommon.humanReadable(targetsize)
+                            printed_size = reposadocommon.human_readable(targetsize)
                         else:
                             printed_size = str(targetsize) + ' bytes'
                         reposadocommon.print_stdout(
@@ -509,7 +509,7 @@ def get_saved_etag(url):
     '''Retrieves a saved etag'''
     #global _ETAG
     if _ETAG == {}:
-        reposadocommon.getDataFromPlist('ETags.plist')
+        reposadocommon.get_data_from_plist('ETags.plist')
     if url in _ETAG:
         return _ETAG[url]
     else:
@@ -524,7 +524,7 @@ def record_etag(url, etag):
 
 def writeEtagDict():
     '''Writes our stored etags to disk'''
-    reposadocommon.writeDataToPlist(_ETAG, 'ETags.plist')
+    reposadocommon.write_data_to_plist(_ETAG, 'ETags.plist')
 
 
 class ReplicationError(Exception):
@@ -650,7 +650,7 @@ def sync(fast_scan=False, download_packages=True):
         print('Output logged to %s' % reposadocommon.LOGFILE)
     reposadocommon.print_stdout('repo_sync run started')
     catalog_urls = reposadocommon.pref('AppleCatalogURLs')
-    products = reposadocommon.getProductInfo()
+    products = reposadocommon.get_product_info()
 
     # clear cached AppleCatalog listings
     for item in products.keys():
@@ -659,7 +659,7 @@ def sync(fast_scan=False, download_packages=True):
 
     for catalog_url in catalog_urls:
         localcatalogpath = (
-            reposadocommon.getLocalPathNameFromURL(catalog_url) + '.apple')
+            reposadocommon.get_local_pathname_from_url(catalog_url) + '.apple')
         if os.path.exists(localcatalogpath):
             archiveCatalog(localcatalogpath)
         try:
@@ -774,7 +774,7 @@ def sync(fast_scan=False, download_packages=True):
                                 'No usable .dist file found!')
                             continue
                         dist_url = distributions[dist_lang]
-                        preferred_dist = reposadocommon.getLocalPathNameFromURL(
+                        preferred_dist = reposadocommon.get_local_pathname_from_url(
                             dist_url)
 
                     dist = parseSUdist(preferred_dist)
@@ -814,13 +814,13 @@ def sync(fast_scan=False, download_packages=True):
                             products[product_key]['AppleCatalogs'])
 
         # record products we've successfully downloaded
-        reposadocommon.writeDownloadStatus(replicated_products)
+        reposadocommon.write_download_status(replicated_products)
         # write our ETags to disk for future use
         writeEtagDict()
         # record our product cache
-        reposadocommon.writeProductInfo(products)
+        reposadocommon.write_product_info(products)
         # write our local (filtered) catalogs
-        reposadocommon.writeLocalCatalogs(localcatalogpath)
+        reposadocommon.write_local_catalogs(localcatalogpath)
 
     # clean up tmpdir
     cleanUpTmpDir()
@@ -837,7 +837,7 @@ def main():
                       help='Recheck already downloaded packages for changes.')
 
     options, unused_arguments = parser.parse_args()
-    if reposadocommon.validPreferences():
+    if reposadocommon.valid_preferences():
         if not os.path.exists(reposadocommon.pref('CurlPath')):
             reposadocommon.print_stderr('ERROR: curl tool not found at %s',
                                         reposadocommon.pref('CurlPath'))
