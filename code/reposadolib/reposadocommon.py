@@ -64,6 +64,27 @@ except NameError:
     # Python 3
     get_input = input # pylint: disable=input-builtin,invalid-name
 
+
+def read_plist(filepath):
+    '''Wrapper for the differences between Python 2 and Python 3's plistlib'''
+    try:
+        with open(filepath, "rb") as fileobj:
+            return plistlib.load(fileobj)
+    except AttributeError:
+        # plistlib module doesn't have a load function (as in Python 2)
+        return plistlib.readPlist(filepath)
+
+
+def write_plist(data, filepath):
+    '''Wrapper for the differences between Python 2 and Python 3's plistlib'''
+    try:
+        with open(filepath, "wb") as fileobj:
+            plistlib.dump(data, fileobj)
+    except AttributeError:
+        # plistlib module doesn't have a dump function (as in Python 2)
+        plistlib.writePlist(data, filepath)
+
+
 def get_main_dir():
     '''Returns the directory name of the script or the directory name of the exe
     if py2exe was used
@@ -121,7 +142,7 @@ def pref(prefname):
         'CurlPath': '/usr/bin/curl'
     }
     try:
-        prefs = plistlib.readPlist(prefs_file_path())
+        prefs = read_plist(prefs_file_path())
     except (IOError, ExpatError):
         prefs = default_prefs
     if prefname in prefs:
@@ -174,7 +195,7 @@ def configure_prefs():
     prefspath = prefs_file_path()
     # retrieve current preferences
     try:
-        prefs = plistlib.readPlist(prefspath)
+        prefs = read_plist(prefspath)
     except (IOError, ExpatError):
         prefs = {}
     # merge edited preferences
@@ -182,7 +203,7 @@ def configure_prefs():
         prefs[key] = _prefs[key]
     # write preferences to our file
     try:
-        plistlib.writePlist(prefs, prefspath)
+        write_plist(prefs, prefspath)
     except (IOError, ExpatError):
         print_stderr('Could not save configuration to %s', prefspath)
     else:
@@ -288,7 +309,7 @@ def write_data_to_plist(data, filename):
                 'Could not create missing %s because %s',
                 metadata_dir, errmsg)
     try:
-        plistlib.writePlist(
+        write_plist(
             data, os.path.join(metadata_dir, filename))
     except (IOError, OSError, TypeError) as errmsg:
         print_stderr(
@@ -299,7 +320,7 @@ def get_data_from_plist(filename):
     '''Reads data from a plist in our metadata dir'''
     metadata_dir = pref('UpdatesMetadataDir')
     try:
-        return plistlib.readPlist(
+        return read_plist(
             os.path.join(metadata_dir, filename))
     except (IOError, ExpatError):
         return {}
@@ -416,7 +437,7 @@ def write_all_branch_catalogs():
 
 def write_branch_catalogs(localcatalogpath):
     '''Writes our branch catalogs'''
-    catalog = plistlib.readPlist(localcatalogpath)
+    catalog = read_plist(localcatalogpath)
     downloaded_products = catalog['Products']
     product_info = get_product_info()
 
@@ -473,7 +494,7 @@ def write_branch_catalogs(localcatalogpath):
                 # skip the item -- we can't add it to the catalog.
                 pass
 
-        plistlib.writePlist(catalog, branchcatalogpath)
+        write_plist(catalog, branchcatalogpath)
 
 
 def write_all_local_catalogs():
@@ -486,7 +507,7 @@ def write_all_local_catalogs():
 
 def write_local_catalogs(applecatalogpath):
     '''Writes our local catalogs based on the Apple catalog'''
-    catalog = plistlib.readPlist(applecatalogpath)
+    catalog = read_plist(applecatalogpath)
     # rewrite the URLs within the catalog to point to the items on our
     # local server instead of Apple's
     rewrite_urls(catalog)
@@ -515,7 +536,7 @@ def write_local_catalogs(applecatalogpath):
 
     # write raw (unstable/development) catalog
     # with all downloaded Apple updates enabled
-    plistlib.writePlist(catalog, localcatalogpath)
+    write_plist(catalog, localcatalogpath)
 
     # now write filtered catalogs (branches) based on this catalog
     write_branch_catalogs(localcatalogpath)

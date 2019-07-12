@@ -39,16 +39,14 @@ repo_sync
 Created by Greg Neagle on 2011-03-03.
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
+
 import calendar
 import os
 import optparse
-import plistlib
 import re
 import shutil
 import subprocess
-#import sys
 import time
 import tempfile
 from xml.dom import minidom
@@ -61,6 +59,7 @@ except ImportError:
     from urllib.parse import urlsplit
 
 from reposadolib import reposadocommon
+
 
 def _win_os_rename(src, dst):
     '''Non-atomic os.rename() that doesn't throw OSError under Windows
@@ -87,7 +86,7 @@ def parse_server_metadata(filename):
     vers = ''
     description = ''
     try:
-        md_plist = plistlib.readPlist(filename)
+        md_plist = reposadocommon.read_plist(filename)
     except (OSError, IOError, ExpatError) as err:
         reposadocommon.print_stderr(
             'Error reading %s: %s', filename, err)
@@ -397,7 +396,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
 
     retcode = proc.poll()
     if retcode:
-        curlerr = proc.stderr.read().rstrip('\n')
+        curlerr = proc.stderr.read().decode('UTF-8').rstrip('\n')
         if curlerr:
             curlerr = curlerr.split(None, 2)[2]
         if os.path.exists(tempdownloadpath):
@@ -591,8 +590,8 @@ def archive_catalog(catalogpath):
     archivepath = os.path.join(archivedir, catalogname + modtimestring)
     if not os.path.exists(archivepath):
         try:
-            catalog = plistlib.readPlist(catalogpath)
-            plistlib.writePlist(catalog, archivepath)
+            catalog = reposadocommon.read_plist(catalogpath)
+            reposadocommon.write_plist(catalog, archivepath)
             # might as well set the mod time of the archive file to match
             os.utime(archivepath, (time.time(), modtime))
         except (OSError, IOError, ExpatError) as err:
@@ -669,7 +668,7 @@ def sync(fast_scan=False, download_packages=True):
                 'Could not replicate %s: %s', catalog_url, err)
             continue
         try:
-            catalog = plistlib.readPlist(localcatalogpath)
+            catalog = reposadocommon.read_plist(localcatalogpath)
         except (OSError, IOError, ExpatError) as err:
             reposadocommon.print_stderr(
                 'Error reading %s: %s', localcatalogpath, err)
