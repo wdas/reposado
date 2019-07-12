@@ -46,23 +46,10 @@ import os
 import imp
 import plistlib
 import time
+import urlparse
 import warnings
 from xml.parsers.expat import ExpatError
 from xml.dom import minidom
-try:
-    # Python 2
-    from urlparse import urlsplit
-except ImportError:
-    # Python 3
-    from urllib.parse import urlsplit
-
-# wrapper for raw_input in Python 3
-try:
-    # Python 2
-    get_input = raw_input # pylint: disable=raw_input-builtin
-except NameError:
-    # Python 3
-    get_input = input # pylint: disable=input-builtin
 
 def get_main_dir():
     '''Returns the directory name of the script or the directory name of the exe
@@ -167,7 +154,7 @@ def configure_prefs():
         ('CurlPath', 'Path to curl tool (Example: /usr/bin/curl)'))
 
     for (key, prompt) in keysAndPrompts:
-        newvalue = get_input('%15s [%s]: ' % (prompt, pref(key)))
+        newvalue = raw_input('%15s [%s]: ' % (prompt, pref(key)))
         _prefs[key] = newvalue or pref(key) or ''
 
     prefspath = prefsFilePath()
@@ -189,27 +176,25 @@ def configure_prefs():
         unused_value = validPreferences()
 
 
-def unicode_or_str(something, encoding="UTF-8"):
-    '''Wrapper for unicode vs str'''
+def str_to_ascii(s):
+    """Given str (unicode, latin-1, or not) return ascii.
+
+    Args:
+      s: str, likely in Unicode-16BE, UTF-8, or Latin-1 charset
+    Returns:
+      str, ascii form, no >7bit chars
+    """
     try:
-        # Python 2
-        # pylint: disable=unicode-builtin
-        if isinstance(something, str):
-            return unicode(something, encoding) 
-        return unicode(something)
-        # pylint: enable=unicode-builtin
-    except NameError:
-        # Python 3
-        if isinstance(something, bytes):
-            return str(something, encoding)
-        return str(something)
+        return unicode(s).encode('ascii', 'ignore')
+    except UnicodeDecodeError:
+        return s.decode('ascii', 'ignore')
 
 
 def concat_message(msg, *args):
     """Concatenates a string with any additional arguments; drops unicode."""
-    msg = unicode_or_str(msg)
+    msg = str_to_ascii(msg)
     if args:
-        args = [unicode_or_str(arg) for arg in args]
+        args = [str_to_ascii(arg) for arg in args]
         try:
             msg = msg % tuple(args)
         except TypeError:
@@ -228,7 +213,7 @@ def log(msg):
     try:
         fileobj = open(LOGFILE, mode='a', buffering=1)
         try:
-            print(time.strftime(formatstr), msg, file=fileobj)
+            print(time.strftime(formatstr), msg.encode('UTF-8'), file=fileobj)
         except (OSError, IOError):
             pass
         fileobj.close()
@@ -261,7 +246,6 @@ def print_stderr(msg, *args):
 
 def humanReadable(size_in_bytes):
     """Returns sizes in human-readable units."""
-    # pylint: disable=round-builtin,old-division
     try:
         size_in_bytes = int(size_in_bytes)
     except ValueError:
@@ -335,7 +319,7 @@ def writeProductInfo(product_info_dict):
 def getFilenameFromURL(url):
     '''Gets the filename from a URL'''
     (unused_scheme, unused_netloc,
-        path, unused_query, unused_fragment) = urlsplit(url)
+        path, unused_query, unused_fragment) = urlparse.urlsplit(url)
     return os.path.basename(path)
 
 
@@ -344,7 +328,7 @@ def getLocalPathNameFromURL(url, root_dir=None):
     if root_dir is None:
         root_dir = pref('UpdatesRootDir')
     (unused_scheme, unused_netloc,
-        path, unused_query, unused_fragment) = urlsplit(url)
+        path, unused_query, unused_fragment) = urlparse.urlsplit(url)
     relative_path = path.lstrip('/')
     return os.path.join(root_dir, relative_path)
 
@@ -355,7 +339,7 @@ def rewriteOneURL(full_url):
     if not full_url.startswith(our_base_url):
         # only rewrite the URL if needed
         (unused_scheme, unused_netloc,
-         path, unused_query, unused_fragment) = urlsplit(full_url)
+         path, unused_query, unused_fragment) = urlparse.urlsplit(full_url)
         return our_base_url + path
     else:
         return full_url
@@ -383,7 +367,7 @@ def rewriteURLsForProduct(product):
             # instead of Apple's
             del package['Digest']
     distributions = product['Distributions']
-    for dist_lang in list(distributions.keys()):
+    for dist_lang in distributions.keys():
         distributions[dist_lang] = rewriteOneURL(
             distributions[dist_lang])
 
@@ -434,7 +418,7 @@ def writeBranchCatalogs(localcatalogpath):
         catalog['_CatalogName'] = os.path.basename(branchcatalogpath)
         catalog['Products'] = {}
         for product_key in catalog_branches[branch]:
-            if product_key in list(downloaded_products.keys()):
+            if product_key in downloaded_products.keys():
                 # add the product to the Products dict
                 # for this catalog
                 catalog['Products'][product_key] = \
@@ -578,7 +562,7 @@ def check_or_remove_config_data_attribute(
                         option_elements = (
                             dom.getElementsByTagName('options') or [])
                         for element in option_elements:
-                            if 'type' in list(element.attributes.keys()):
+                            if 'type' in element.attributes.keys():
                                 if (element.attributes['type'].value
                                         == 'config-data'):
                                     found_config_data = True
