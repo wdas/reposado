@@ -346,7 +346,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
     downloadedpercent = -1
 
     while True:
-        line = proc.stdout.readline()
+        line = proc.stdout.readline().decode('UTF-8')
         if line:
             line_stripped = line.rstrip('\r\n')
             if line_stripped:
