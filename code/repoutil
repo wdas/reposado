@@ -632,7 +632,7 @@ def main():
     p.add_option('--sort', metavar='SORT_ORDER', default='date',
                  help='Sort list.\n'
                       'Available sort orders are: date, title, id.')
-    p.add_option('--reverse', action='store_true',
+    p.add_option('--reverse', action='store_true', default=False,
                  help='Reverse sort order.')
     p.add_option('--branches', '--catalogs',
                  dest='list_branches', action='store_true',
