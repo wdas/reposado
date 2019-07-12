@@ -559,10 +559,10 @@ def read_xml_file(filename):
 
 def write_xml_to_file(node, path):
     '''Write XML dom node to file'''
-    xml_string = node.toxml('utf-8')
+    xml_bytestring = node.toxml('utf-8')
     try:
-        fileobject = open(path, mode='w')
-        print(xml_string, file=fileobject)
+        fileobject = open(path, mode='wb')
+        fileobject.write(xml_bytestring)
         fileobject.close()
     except (OSError, IOError):
         print_stderr('Couldn\'t write XML to %s' % path)

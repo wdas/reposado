@@ -44,10 +44,10 @@ import shutil
 from reposadolib import reposadocommon
 
 
-def deleteBranchCatalogs(branchname):
+def delete_branch_catalogs(branchname):
     '''Removes catalogs corresponding to a deleted branch'''
-    for catalog_URL in reposadocommon.pref('AppleCatalogURLs'):
-        localcatalogpath = reposadocommon.get_local_pathname_from_url(catalog_URL)
+    for catalog_url in reposadocommon.pref('AppleCatalogURLs'):
+        localcatalogpath = reposadocommon.get_local_pathname_from_url(catalog_url)
         # now strip the '.sucatalog' bit from the name
         if localcatalogpath.endswith('.sucatalog'):
             localcatalogpath = localcatalogpath[0:-10]
@@ -58,7 +58,7 @@ def deleteBranchCatalogs(branchname):
             os.remove(branchcatalogpath)
 
 
-def getProductLocation(product, product_id):
+def get_product_location(product, product_id):
     '''Returns local path to replicated product
     We pass in the product dictionary to avoid calling
     reposadocommon.get_product_info(), which is slow.'''
@@ -88,7 +88,7 @@ def getProductLocation(product, product_id):
             return None
 
 
-def getRestartNeeded(product):
+def get_restart_needed(product):
     '''Returns "Yes" if all pkg_refs require a restart or shutdown,
     "No" if none do, and "Sometimes" if some do and some don't.
     Returns "UNKNOWN" if there is no pkg_ref data for the update.'''
@@ -107,9 +107,8 @@ def getRestartNeeded(product):
     elif restart_count == pkg_count:
         # all pkgs require a restart/shutdown/logout
         return "Yes"
-    else:
-        # some pkgs require a restart/shutdown/logout
-        return "Sometimes"
+    # else some pkgs require a restart/shutdown/logout
+    return "Sometimes"
 
 
 def print_info(key):
@@ -134,13 +133,13 @@ def print_info(key):
         reposadocommon.print_stdout(
             'Post Date:     %s', product.get('PostDate'))
         reposadocommon.print_stdout(
-            'RestartNeeded: %s', getRestartNeeded(product))
+            'RestartNeeded: %s', get_restart_needed(product))
         if reposadocommon.pref('LocalCatalogURLBase'):
             # we're replicating products locally
             reposadocommon.print_stdout('Status:        %s', status)
             if status == 'Downloaded':
                 reposadocommon.print_stdout(
-                    'Location:      %s' % getProductLocation(product, key))
+                    'Location:      %s' % get_product_location(product, key))
         if products[key].get('AppleCatalogs'):
             reposadocommon.print_stdout('AppleCatalogs:')
             for catalog in product['AppleCatalogs']:
@@ -173,18 +172,18 @@ def print_dist(key):
             if products[key]['CatalogEntry'].get('Distributions'):
                 for lang in languages:
                     if products[key]['CatalogEntry']['Distributions'].get(lang):
-                        distPath = reposadocommon.get_local_pathname_from_url(
+                        dist_path = reposadocommon.get_local_pathname_from_url(
                             products[key]['CatalogEntry'][
                                 'Distributions'][lang])
                         try:
-                            distFd = open(distPath, 'r')
-                            distContents = distFd.read()
-                            distFd.close()
-                            reposadocommon.print_stdout(distContents)
-                        except (IOError, OSError) as errorMsg:
+                            dist_fd = open(dist_path, 'r')
+                            dist_contents = dist_fd.read()
+                            dist_fd.close()
+                            reposadocommon.print_stdout(dist_contents)
+                        except (IOError, OSError) as err:
                             reposadocommon.print_stderr(
                                 'Error getting %s dist file for product %s:\n%s'
-                                % (lang, key, errorMsg))
+                                % (lang, key, err))
     else:
         reposadocommon.print_stdout('No product id %s found.', key)
 
@@ -247,17 +246,17 @@ def diff_branches(branch_list):
     branch2 = set(catalog_branches[branch_list[1]])
     unique_to_first = branch1 - branch2
     unique_to_second = branch2 - branch1
-    if len(unique_to_first) == 0  and len(unique_to_second) == 0:
+    if not unique_to_first and not unique_to_second:
         reposadocommon.print_stdout(
             'No differences between %s and %s.' % branch_list)
     else:
         reposadocommon.print_stdout('Unique to \'%s\':', branch_list[0])
-        if len(unique_to_first):
+        if unique_to_first:
             list_products(list_of_productids=unique_to_first)
         else:
             reposadocommon.print_stdout('<none>')
         reposadocommon.print_stdout('\nUnique to \'%s\':', branch_list[1])
-        if len(unique_to_second):
+        if unique_to_second:
             list_products(list_of_productids=unique_to_second)
         else:
             reposadocommon.print_stdout('<none>')
@@ -302,7 +301,7 @@ def list_products(sort_order='date', reverse_sort=False,
     products = reposadocommon.get_product_info()
     catalog_branches = reposadocommon.get_catalog_branches()
     product_list = []
-    if list_of_productids == None:
+    if list_of_productids is None:
         list_of_productids = list(products.keys())
     for productid in list_of_productids:
         if not productid in products:
@@ -503,7 +502,7 @@ def purge_product(product_ids, force=False):
                         product_short_info, branch_name)
                     catalog_branches[branch_name].remove(product_id)
 
-        local_copy = getProductLocation(product, product_id)
+        local_copy = get_product_location(product, product_id)
         if local_copy:
             # remove local replica
             reposadocommon.print_stdout(
@@ -567,7 +566,7 @@ def delete_branch(branchname, force=False):
         if not answer.lower().startswith('y'):
             return
     del catalog_branches[branchname]
-    deleteBranchCatalogs(branchname)
+    delete_branch_catalogs(branchname)
     reposadocommon.write_catalog_branches(catalog_branches)
 
 
@@ -589,7 +588,6 @@ def configure():
 def remove_config_data(product_ids):
     '''Remove the config-data attribute from product dist files'''
     if len(product_ids) == 1 and product_ids[0] == 'all':
-        '''Removes the config-data attribute from all products'''
         reposadocommon.print_stdout(
             'Checking all products for config-data attributes...')
         product_info = reposadocommon.get_product_info()
@@ -614,84 +612,82 @@ def remove_config_data(product_ids):
 def main():
     '''Main command processing'''
 
-    p = optparse.OptionParser()
-    p.set_usage('''Usage: %prog [options]''')
-    #p.add_option('--sync', action='store_true',
-    #             help="""Synchronize Apple updates""")
-    p.add_option('--configure', action='store_true',
-                 help='Configure Reposado preferences.')
-    p.add_option('--products', '--updates', action='store_true',
-                 dest='products',
-                 help='List available updates.')
-    p.add_option('--deprecated', action='store_true',
-                 help='List deprecated updates.')
-    p.add_option('--non-deprecated', action='store_true',
-                 help='List non-deprecated updates.')
-    p.add_option('--config-data', action='store_true',
-                 help="""List updates with 'type="config-data"' attribute""")
-    p.add_option('--sort', metavar='SORT_ORDER', default='date',
-                 help='Sort list.\n'
+    parser = optparse.OptionParser()
+    parser.set_usage('''Usage: %prog [options]''')
+    parser.add_option('--configure', action='store_true',
+                      help='Configure Reposado preferences.')
+    parser.add_option('--products', '--updates', action='store_true',
+                      dest='products',
+                      help='List available updates.')
+    parser.add_option('--deprecated', action='store_true',
+                      help='List deprecated updates.')
+    parser.add_option('--non-deprecated', action='store_true',
+                      help='List non-deprecated updates.')
+    parser.add_option('--config-data', action='store_true',
+                      help="""List updates with 'type="config-data"' attribute""")
+    parser.add_option('--sort', metavar='SORT_ORDER', default='date',
+                      help='Sort list.\n'
                       'Available sort orders are: date, title, id.')
-    p.add_option('--reverse', action='store_true', default=False,
-                 help='Reverse sort order.')
-    p.add_option('--branches', '--catalogs',
-                 dest='list_branches', action='store_true',
-                 help='List available branch catalogs.')
-    p.add_option('--new-branch',
-                 metavar='BRANCH_NAME',
-                 help='Create new empty branch BRANCH_NAME.')
-    p.add_option('--delete-branch',
-                 metavar='BRANCH_NAME [--force]',
-                 help='Delete branch BRANCH_NAME.')
-    p.add_option('--copy-branch', nargs=2,
-                 metavar='SOURCE_BRANCH DEST_BRANCH [--force]',
-                 help='Copy all items from SOURCE_BRANCH to '
+    parser.add_option('--reverse', action='store_true', default=False,
+                      help='Reverse sort order.')
+    parser.add_option('--branches', '--catalogs',
+                      dest='list_branches', action='store_true',
+                      help='List available branch catalogs.')
+    parser.add_option('--new-branch',
+                      metavar='BRANCH_NAME',
+                      help='Create new empty branch BRANCH_NAME.')
+    parser.add_option('--delete-branch',
+                      metavar='BRANCH_NAME [--force]',
+                      help='Delete branch BRANCH_NAME.')
+    parser.add_option('--copy-branch', nargs=2,
+                      metavar='SOURCE_BRANCH DEST_BRANCH [--force]',
+                      help='Copy all items from SOURCE_BRANCH to '
                       'DEST_BRANCH. If DEST_BRANCH does not exist, '
                       'it will be created.')
-    p.add_option('--list-branch', '--list-catalog',
-                 dest='branch',
-                 metavar='BRANCH_NAME',
-                 help='List updates in branch BRANCH_NAME.')
-    p.add_option('--diff', '--diff-branch', '--diff-branches',
-                 dest='diff_branch', nargs=2,
-                 metavar='BRANCH1_NAME BRANCH2_NAME',
-                 help='Display differences between two branches.')
-    p.add_option('--product-info', '--info', metavar='PRODUCT_ID',
-                 dest='info',
-                 help='Print info on a specific update.')
-    p.add_option('--product-dist', '--dist', metavar='PRODUCT_ID',
-                 dest='dist',
-                 help='Print the contents of the .dist file for a specific '
-                      'update.')
-    p.add_option('--add-product', '--add-products',
-                 '--add-update', '--add-updates', '--add',
-                 dest='add_product', nargs=2,
-                 metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
-                 help='Add one or more PRODUCT_IDs to catalog branch '
+    parser.add_option('--list-branch', '--list-catalog',
+                      dest='branch',
+                      metavar='BRANCH_NAME',
+                      help='List updates in branch BRANCH_NAME.')
+    parser.add_option('--diff', '--diff-branch', '--diff-branches',
+                      dest='diff_branch', nargs=2,
+                      metavar='BRANCH1_NAME BRANCH2_NAME',
+                      help='Display differences between two branches.')
+    parser.add_option('--product-info', '--info', metavar='PRODUCT_ID',
+                      dest='info',
+                      help='Print info on a specific update.')
+    parser.add_option('--product-dist', '--dist', metavar='PRODUCT_ID',
+                      dest='dist',
+                      help='Print the contents of the .dist file for a '
+                      'specific update.')
+    parser.add_option('--add-product', '--add-products',
+                      '--add-update', '--add-updates', '--add',
+                      dest='add_product', nargs=2,
+                      metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
+                      help='Add one or more PRODUCT_IDs to catalog branch '
                       'BRANCH_NAME.  --add-product all BRANCH_NAME will add '
                       'all cached products, including deprecated products, to '
                       'catalog BRANCH_NAME. --add-product non-deprecated '
                       'BRANCH_NAME will add all non-deprecated products to '
                       'catalog BRANCH_NAME.')
-    p.add_option('--remove-product', '--remove-products', nargs=2,
-                 metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
-                 help='Remove one or more PRODUCT_IDs from catalog branch '
+    parser.add_option('--remove-product', '--remove-products', nargs=2,
+                      metavar='PRODUCT_ID [PRODUCT_ID ...] BRANCH_NAME',
+                      help='Remove one or more PRODUCT_IDs from catalog branch '
                       'BRANCH_NAME. --remove-product deprecated will remove '
                       'all deprecated products from BRANCH_NAME.')
-    p.add_option('--remove-config-data',
-                 metavar='PRODUCT_ID [PRODUCT_ID ...]',
-                 help='Remove the \'type="config-data"\' attribute from one or '
-                      'more PRODUCT_IDs.')
-    p.add_option('--purge-product', '--purge-products',
-                 metavar='PRODUCT_ID [PRODUCT_ID ...] [--force]',
-                 help='Purge one or more PRODUCT_IDs from product '
+    parser.add_option('--remove-config-data',
+                      metavar='PRODUCT_ID [PRODUCT_ID ...]',
+                      help='Remove the \'type="config-data"\' attribute from '
+                      'one or more PRODUCT_IDs.')
+    parser.add_option('--purge-product', '--purge-products',
+                      metavar='PRODUCT_ID [PRODUCT_ID ...] [--force]',
+                      help='Purge one or more PRODUCT_IDs from product '
                       'database and remove any locally replicated version.')
-    p.add_option('--force', action='store_true',
-                 help='Force purge of product, force copy or force delete a '
-                 'branch. Must be used with --purge-product, --copy-branch '
-                 'or --delete-branch options.')
+    parser.add_option('--force', action='store_true',
+                      help='Force purge of product, force copy or force delete '
+                      'a branch. Must be used with --purge-product, '
+                      '--copy-branch or --delete-branch options.')
 
-    options, arguments = p.parse_args()
+    options, arguments = parser.parse_args()
 
     if options.configure:
         configure()
