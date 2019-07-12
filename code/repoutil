@@ -36,7 +36,6 @@
 '''A tool to replicate most of the functionality of
 Apple Software Update server'''
 
-from __future__ import absolute_import
 import optparse
 import os
 import shutil
@@ -181,7 +180,7 @@ def print_dist(key):
                             distContents = distFd.read()
                             distFd.close()
                             reposadocommon.print_stdout(distContents)
-                        except (IOError, OSError) as errorMsg:
+                        except (IOError, OSError), errorMsg:
                             reposadocommon.print_stderr(
                                 'Error getting %s dist file for product %s:\n%s'
                                 % (lang, key, errorMsg))
@@ -517,7 +516,7 @@ def purge_product(product_ids, force=False):
                 product_short_info, local_copy)
             try:
                 shutil.rmtree(local_copy)
-            except (OSError, IOError) as err:
+            except (OSError, IOError), err:
                 reposadocommon.print_stderr(
                     'Error: %s', err)
                 # but not fatal, so keep going...
