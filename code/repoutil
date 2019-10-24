@@ -75,16 +75,8 @@ def getProductLocation(product, product_id):
         except (KeyError, IndexError):
             return None
     filepath = reposadocommon.getLocalPathNameFromURL(product_url)
-    # now back out to product_id dir and return the path
-    while True:
-        if filepath.endswith(product_id):
-            return filepath
-        else:
-            # discard last element of path
-            filepath = os.path.dirname(filepath)
-        if filepath == '/':
-            # didn't find it
-            return None
+    # return the directory this pkg is in
+    return os.path.dirname(filepath)
 
 
 def getRestartNeeded(product):
