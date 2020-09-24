@@ -289,7 +289,7 @@ def curl(url, destinationpath, onlyifnewer=False, etag=None, resume=False):
     # curl so we avoid the problem of URLs showing up in a process listing
     try:
         fileobj = open(curldirectivepath, mode='w')
-        print >> fileobj, 'compress'       # accept and handle compressed files
+        print >> fileobj, 'compressed'     # accept and handle compressed files
         print >> fileobj, 'silent'         # no progress meter
         print >> fileobj, 'show-error'     # print error msg to stderr
         print >> fileobj, 'no-buffer'      # don't buffer output
