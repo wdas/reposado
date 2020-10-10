@@ -112,15 +112,15 @@ The following keys are optional and may be defined in preferences.plist for spec
 
 ## Example preferences.plist
 
-  <?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-  <plist version="1.0">
-  <dict>
-      <key>LocalCatalogURLBase</key>
-      <string>http://su.myorg.com</string>
-      <key>UpdatesRootDir</key>
-      <string>/Volumes/data/reposado/html</string>
-      <key>UpdatesMetadataDir</key>
-      <string>/Volumes/data/reposado/metadata</string>
-  </dict>
-  </plist>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+        <key>LocalCatalogURLBase</key>
+        <string>http://su.myorg.com</string>
+        <key>UpdatesRootDir</key>
+        <string>/Volumes/data/reposado/html</string>
+        <key>UpdatesMetadataDir</key>
+        <string>/Volumes/data/reposado/metadata</string>
+    </dict>
+    </plist>
